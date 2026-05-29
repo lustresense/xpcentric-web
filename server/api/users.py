@@ -138,7 +138,7 @@ def handle_get(handler, conn, path, query, deps):
                     "kecamatan": r["kec_name"],
                     "kelurahan": r["kel_name"],
                     "kampungId": r["kelurahan_id"],
-                    "points": int(r["points"]),
+                    "points": max(0, int(r["points"])),
                 }
             )
         write_json(handler, 200, {"users": users})

@@ -227,7 +227,7 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
                 className="block text-xs font-bold uppercase tracking-wider transition-colors"
                 style={{ color: theme.onSurfaceVariant }}
               >
-                Email atau Username
+                Email
               </label>
               <div className="relative">
                 <input

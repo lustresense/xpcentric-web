@@ -1,3 +1,5 @@
+"""Legacy monolithic backend copy kept for reference only."""
+
 import json
 import os
 import re

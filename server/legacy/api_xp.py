@@ -1,6 +1,7 @@
 """
-SIMRP XP & Leaderboard Module
-XP tracking and leaderboard.
+Legacy XP route-dict module kept for reference only.
+
+Runtime leaderboard handling is delegated from server/main.py to server/api/users.py.
 """
 from core import execute
 

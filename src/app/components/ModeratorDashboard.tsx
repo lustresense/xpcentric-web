@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Badge } from '@/app/components/ui/badge';
-import { CheckCircle, XCircle, FileText, Clock, LayoutGrid, ShieldCheck, Lightbulb, BarChart3, Users, Handshake, Loader2, User as UserIcon } from 'lucide-react';
-import { apiGet, apiPost, apiPut } from '@/lib/api';
-import { toast } from 'sonner';
+import { FileText, LayoutGrid, ShieldCheck, Lightbulb, BarChart3, Users, Handshake, User as UserIcon } from 'lucide-react';
 import { FloatingNavbar } from '@/app/components/ui/FloatingNavbar';
-import { Input } from '@/app/components/ui/input';
 import { UserProfile } from '@/app/components/UserProfile';
+import { ModeratorCollaborationReview } from '@/app/components/moderator/ModeratorCollaborationReview';
+import { EventApprovalQueue, Tier1EventInput } from '@/app/components/moderator/ModeratorEventManagement';
+import { PendingReportReview, VerifiedReportList } from '@/app/components/moderator/ModeratorReportReview';
+import { useModeratorDashboardData } from '@/app/components/moderator/useModeratorDashboardData';
 
 interface ModeratorDashboardProps {
   user: any;
@@ -19,280 +19,43 @@ interface ModeratorDashboardProps {
   moderatorTier: 1 | 2 | 3;
 }
 
-interface GeoKelurahan {
-  id: number;
-  name: string;
-  kodepos: string[];
-}
-
-interface GeoKecamatan {
-  id: number;
-  name: string;
-  kelurahan: GeoKelurahan[];
-}
-
 export function ModeratorDashboard({ user, authToken, onLogout, onNavigate, currentView, onViewChange, moderatorTier }: ModeratorDashboardProps) {
-  const [reports, setReports] = useState<any[]>([]);
-  const [users, setUsers] = useState<any[]>([]);
-  const [events, setEvents] = useState<any[]>([]);
-  const [collaborationRequests, setCollaborationRequests] = useState<any[]>([]);
-  const [geoOptions, setGeoOptions] = useState<GeoKecamatan[]>([]);
-  const [eventForm, setEventForm] = useState({
-    title: '',
-    description: '',
-    pillar: '1',
-    scopeType: 'kelurahan',
-    kecamatanId: '',
-    kelurahanId: '',
-    date: '',
-    time: '',
-    location: '',
-    quota: 0
-  });
-  const [submittingEvent, setSubmittingEvent] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [activePage, setActivePage] = useState<string>('overview');
-  const [editingEventId, setEditingEventId] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchData();
-  }, [moderatorTier]);
 
   useEffect(() => {
     const next = moderatorTier === 1 ? "monitor" : moderatorTier === 2 ? "verify" : "aggregate";
     setActivePage(next);
   }, [moderatorTier]);
 
-  useEffect(() => {
-    if (!geoOptions.length || eventForm.kecamatanId) {
-      return;
-    }
-    const kecamatanByName = geoOptions.find((k) => k.name === user?.kecamatan);
-    if (!kecamatanByName) {
-      return;
-    }
-    const kelurahanByName = kecamatanByName.kelurahan.find((k) => k.name === user?.kelurahan);
-    setEventForm((prev) => ({
-      ...prev,
-      kecamatanId: String(kecamatanByName.id),
-      kelurahanId: kelurahanByName ? String(kelurahanByName.id) : ''
-    }));
-  }, [geoOptions, user?.kecamatan, user?.kelurahan, eventForm.kecamatanId]);
-
-  const requireToken = () => {
-    if (authToken) {
-      return true;
-    }
-    toast.error('Sesi tidak valid. Silakan login ulang.');
-    onLogout();
-    return false;
-  };
-
-  const fetchData = async () => {
-    if (!requireToken()) {
-      return;
-    }
-    setLoading(true);
-    try {
-      await Promise.all([fetchReports(), fetchUsers(), fetchEvents(), fetchGeoOptions(), fetchCollaborationRequests()]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchCollaborationRequests = async () => {
-    if (!authToken || moderatorTier !== 2) {
-      setCollaborationRequests([]);
-      return;
-    }
-    try {
-      const data = await apiGet('/collaboration-requests', authToken);
-      setCollaborationRequests(data.requests || []);
-    } catch {
-      toast.error('Data kolaborasi belum bisa dimuat.');
-    }
-  };
-
-  const fetchGeoOptions = async () => {
-    if (!authToken) return;
-    try {
-      const data = await apiGet('/geo/options', authToken);
-      setGeoOptions(data.kecamatan || []);
-    } catch {
-      toast.error('Data kecamatan/kelurahan belum termuat.');
-    }
-  };
-
-  const fetchReports = async () => {
-    if (!authToken) return;
-    try {
-      const data = await apiGet('/reports', authToken);
-      setReports(data.reports || []);
-    } catch { /* handled globally */ }
-  };
-
-  const fetchUsers = async () => {
-    if (!authToken) return;
-    try {
-      const params = new URLSearchParams();
-      // Moderator dashboard "Relawan Terpantau" must only include relawan/KSH.
-      params.set('role', 'user');
-      if (moderatorTier === 1 && user?.kampungId) {
-        params.set('kampungId', String(user.kampungId));
-      }
-      const filter = params.toString() ? `?${params.toString()}` : '';
-      const data = await apiGet(`/users${filter}`, authToken);
-      setUsers(data.users || []);
-    } catch { /* handled globally */ }
-  };
-
-  const fetchEvents = async () => {
-    if (!authToken) return;
-    try {
-      const data = await apiGet('/events', authToken);
-      setEvents(data.events || []);
-    } catch { /* handled globally */ }
-  };
-
-  const handleVerifyReport = async (reportId: string, approved: boolean) => {
-    if (!requireToken()) return;
-    try {
-      let reason = '';
-      if (!approved) {
-        reason = (window.prompt('Masukkan alasan penolakan laporan') || '').trim();
-        if (!reason) {
-          toast.error('Alasan penolakan wajib diisi');
-          return;
-        }
-      }
-      await apiPost(`/reports/${reportId}/verify`, { approved, points: approved ? 50 : 0, reason }, authToken);
-      toast.success(approved ? 'Laporan disetujui' : 'Laporan ditolak');
-      fetchData();
-    } catch (err: any) {
-      toast.error(err.message || 'Gagal memverifikasi laporan');
-    }
-  };
-
-  const handleEventApproval = async (eventId: string, approved: boolean) => {
-    if (!requireToken()) return;
-    try {
-      await apiPost(`/events/${eventId}/approval`, { approved }, authToken);
-      toast.success(approved ? 'Event disetujui' : 'Event ditolak');
-      fetchEvents();
-    } catch (err: any) {
-      toast.error(err.message || 'Gagal memproses approval');
-    }
-  };
-
-  const handleEventPublish = async (eventId: string) => {
-    if (!requireToken()) return;
-    try {
-      await apiPost(`/events/${eventId}/publish`, {}, authToken);
-      toast.success('Event berhasil dipublish');
-      fetchEvents();
-    } catch (err: any) {
-      toast.error(err.message || 'Gagal publish event');
-    }
-  };
-
-  const handleCollaborationApproval = async (requestId: string, approved: boolean) => {
-    if (!requireToken()) return;
-    try {
-      await apiPost(`/collaboration-requests/${requestId}/approval`, { approved }, authToken);
-      toast.success(approved ? 'Kolaborasi disetujui' : 'Kolaborasi ditolak');
-      fetchCollaborationRequests();
-    } catch (err: any) {
-      toast.error(err.message || 'Terjadi kesalahan');
-    }
-  };
-
-  const handleCreateTier1Event = async () => {
-    if (!requireToken()) return;
-    if (!eventForm.title.trim() || !eventForm.date) {
-      toast.error('Judul dan tanggal wajib diisi');
-      return;
-    }
-    if (!eventForm.kecamatanId) {
-      toast.error('Kecamatan wajib dipilih');
-      return;
-    }
-    if (eventForm.scopeType === 'kelurahan' && !eventForm.kelurahanId) {
-      toast.error('Untuk skala kelurahan, kelurahan wajib dipilih');
-      return;
-    }
-    setSubmittingEvent(true);
-    try {
-      const payload = {
-        title: eventForm.title,
-        description: eventForm.description,
-        pillar: parseInt(eventForm.pillar, 10),
-        scopeType: eventForm.scopeType,
-        kecamatanId: Number(eventForm.kecamatanId),
-        kelurahanId: eventForm.scopeType === 'kelurahan' ? Number(eventForm.kelurahanId) : null,
-        date: eventForm.date,
-        time: eventForm.time,
-        location: eventForm.location,
-        quota: eventForm.quota,
-      };
-      if (editingEventId) {
-        await apiPut(`/events/${editingEventId}`, payload, authToken);
-        toast.success('Draft kegiatan berhasil diperbarui');
-      } else {
-        await apiPost('/events', payload, authToken);
-        toast.success('Kegiatan draft berhasil dibuat');
-      }
-      setEventForm({
-        title: '',
-        description: '',
-        pillar: '1',
-        scopeType: 'kelurahan',
-        kecamatanId: '',
-        kelurahanId: '',
-        date: '',
-        time: '',
-        location: '',
-        quota: 0,
-      });
-      setEditingEventId(null);
-      fetchEvents();
-    } catch (err: any) {
-      toast.error(err.message || 'Terjadi kesalahan');
-    } finally {
-      setSubmittingEvent(false);
-    }
-  };
-
-  const handleEditDraftEvent = (event: any) => {
-    setEditingEventId(event.id);
-    setEventForm({
-      title: event.title || '',
-      description: event.description || '',
-      pillar: String(event.pillar || 1),
-      scopeType: event.scopeType || 'kelurahan',
-      kecamatanId: event.kecamatanId ? String(event.kecamatanId) : '',
-      kelurahanId: event.kelurahanId ? String(event.kelurahanId) : '',
-      date: event.date || '',
-      time: event.time || '',
-      location: event.location || '',
-      quota: Number(event.quota || 0),
-    });
-    setActivePage('rekom');
-  };
-
-  const pendingReports = reports.filter(r => r.status === 'pending');
-  const verifiedReports = reports.filter(r => r.status === 'verified');
-  const draftEvents = events.filter((e) => e.status === 'draft');
-  const approvedEvents = events.filter((e) => e.status === 'approved');
-  const pendingCollaborationRequests = collaborationRequests.filter((item) => item.status === 'pending');
-  const selectedKecamatan = geoOptions.find((k) => String(k.id) === eventForm.kecamatanId);
-  const kelurahanOptions = selectedKecamatan?.kelurahan || [];
-  const visibleUsers = moderatorTier === 1
-    ? users.filter((u) => u.kampungId && u.kampungId === user?.kampungId)
-    : moderatorTier === 2
-      ? (user?.tier2Badge === 'lurah'
-          ? users.filter((u) => u.kampungId === user?.kampungId)
-          : users.filter((u) => u.kecamatan === user?.kecamatan))
-      : users;
+  const {
+    reports,
+    users,
+    eventForm,
+    setEventForm,
+    submittingEvent,
+    editingEventId,
+    geoOptions,
+    kelurahanOptions,
+    pendingReports,
+    verifiedReports,
+    draftEvents,
+    approvedEvents,
+    pendingCollaborationRequests,
+    visibleUsers,
+    handleVerifyReport,
+    handleEventApproval,
+    handleEventPublish,
+    handleCollaborationApproval,
+    handleCreateTier1Event,
+    handleEditDraftEvent,
+    resetEventForm,
+  } = useModeratorDashboardData({
+    user,
+    authToken,
+    onLogout,
+    moderatorTier,
+    onEditDraftEvent: () => setActivePage('rekom'),
+  });
 
   return (
     <div className="size-full flex flex-col bg-white">
@@ -416,100 +179,11 @@ export function ModeratorDashboard({ user, authToken, onLogout, onNavigate, curr
         </Card>
 
         {activePage === "verify" && (
-          <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="w-5 h-5" />
-              Laporan Menunggu Verifikasi
-            </CardTitle>
-            <CardDescription>
-              {pendingReports.length} laporan perlu ditinjau
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {pendingReports.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                Tidak ada laporan yang menunggu verifikasi
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {pendingReports.map((report) => {
-                  const reporter = users.find(u => u.id === report.userId);
-                  
-                  return (
-                    <div key={report.id} className="p-4 border rounded-lg bg-white">
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <div className="font-semibold">{reporter?.name || 'Unknown User'}</div>
-                          <div className="text-sm text-gray-500">
-                            {new Date(report.createdAt).toLocaleDateString('id-ID', {
-                              day: 'numeric',
-                              month: 'long',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </div>
-                        </div>
-                        <Badge className="bg-yellow-500">Pending</Badge>
-                      </div>
-
-                      {report.photoUrl && (
-                        <img
-                          src={report.photoUrl}
-                          alt="Bukti Kegiatan"
-                          className="w-full h-64 object-cover rounded-lg mb-3"
-                        />
-                      )}
-
-                      <div className="space-y-2 text-sm mb-4">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold">Peserta:</span>
-                          <span>{report.participants} orang</span>
-                        </div>
-
-                        {report.outcomeTags?.length > 0 && (
-                          <div>
-                            <span className="font-semibold">Dampak:</span>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {report.outcomeTags.map((tag: string, idx: number) => (
-                                <Badge key={idx} variant="outline" className="text-xs">
-                                  {tag === 'resolved' ? 'Masalah Teratasi' :
-                                   tag === 'followup' ? 'Butuh Tindak Lanjut' :
-                                   tag === 'economic' ? 'Transaksi Ekonomi' :
-                                   tag === 'participation' ? 'Partisipasi Meningkat' :
-                                   tag}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={() => handleVerifyReport(report.id, true)}
-                          className="flex-1 bg-green-600 hover:bg-green-700"
-                        >
-                          <CheckCircle className="w-4 h-4 mr-2" />
-                          Setujui (+50 poin)
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          onClick={() => handleVerifyReport(report.id, false)}
-                          className="flex-1"
-                        >
-                          <XCircle className="w-4 h-4 mr-2" />
-                          Tolak
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-          </Card>
+          <PendingReportReview
+            pendingReports={pendingReports}
+            users={users}
+            onVerifyReport={handleVerifyReport}
+          />
         )}
 
         {activePage === "overview" && (
@@ -543,352 +217,35 @@ export function ModeratorDashboard({ user, authToken, onLogout, onNavigate, curr
         )}
 
         {activePage === "rekom" && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Lightbulb className="w-5 h-5" />
-                Input Kegiatan Tier 1
-              </CardTitle>
-              <CardDescription>ASN Pendamping hanya bisa input kegiatan sebagai draft.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-sm font-semibold text-gray-700">Judul</label>
-                    <Input
-                      value={eventForm.title}
-                      onChange={(e) => setEventForm(prev => ({ ...prev, title: e.target.value }))}
-                      placeholder="Contoh: Kerja Bakti RW 05"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-semibold text-gray-700">Deskripsi</label>
-                    <Input
-                      value={eventForm.description}
-                      onChange={(e) => setEventForm(prev => ({ ...prev, description: e.target.value }))}
-                      placeholder="Deskripsi singkat kegiatan"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-semibold text-gray-700">Pilar</label>
-                    <div className="grid grid-cols-2 gap-2 mt-1">
-                      {[
-                        { id: '1', label: 'Lingkungan' },
-                        { id: '2', label: 'Ekonomi' },
-                        { id: '3', label: 'Kemasyarakatan' },
-                        { id: '4', label: 'Sosial Budaya' }
-                      ].map((pillar) => (
-                        <Button
-                          key={pillar.id}
-                          type="button"
-                          variant={eventForm.pillar === pillar.id ? 'default' : 'outline'}
-                          className={eventForm.pillar === pillar.id ? 'bg-cyan-600 text-white hover:bg-cyan-700' : ''}
-                          onClick={() => setEventForm(prev => ({ ...prev, pillar: pillar.id }))}
-                        >
-                          {pillar.label}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm font-semibold text-gray-700">Skala Kegiatan</label>
-                    <div className="grid grid-cols-2 gap-2 mt-1">
-                      <Button
-                        type="button"
-                        variant={eventForm.scopeType === 'kelurahan' ? 'default' : 'outline'}
-                        className={eventForm.scopeType === 'kelurahan' ? 'bg-cyan-600 text-white hover:bg-cyan-700' : ''}
-                        onClick={() => setEventForm(prev => ({ ...prev, scopeType: 'kelurahan' }))}
-                      >
-                        Kelurahan
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={eventForm.scopeType === 'kecamatan' ? 'default' : 'outline'}
-                        className={eventForm.scopeType === 'kecamatan' ? 'bg-cyan-600 text-white hover:bg-cyan-700' : ''}
-                        onClick={() => setEventForm(prev => ({ ...prev, scopeType: 'kecamatan', kelurahanId: '' }))}
-                      >
-                        Kecamatan
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-sm font-semibold text-gray-700">Kecamatan</label>
-                      <select
-                        className="mt-1 w-full rounded-md border border-gray-300 h-10 px-3 text-sm"
-                        value={eventForm.kecamatanId}
-                        onChange={(e) => setEventForm(prev => ({ ...prev, kecamatanId: e.target.value, kelurahanId: '' }))}
-                      >
-                        <option value="">Pilih kecamatan</option>
-                        {geoOptions.map((kecamatan) => (
-                          <option key={kecamatan.id} value={String(kecamatan.id)}>
-                            {kecamatan.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    {eventForm.scopeType === 'kelurahan' && (
-                      <div>
-                        <label className="text-sm font-semibold text-gray-700">Kelurahan</label>
-                        <select
-                          className="mt-1 w-full rounded-md border border-gray-300 h-10 px-3 text-sm"
-                          value={eventForm.kelurahanId}
-                          onChange={(e) => setEventForm(prev => ({ ...prev, kelurahanId: e.target.value }))}
-                        >
-                          <option value="">Pilih kelurahan</option>
-                          {kelurahanOptions.map((kelurahan: GeoKelurahan) => (
-                            <option key={kelurahan.id} value={String(kelurahan.id)}>
-                              {kelurahan.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-sm font-semibold text-gray-700">Tanggal</label>
-                      <Input
-                        type="date"
-                        value={eventForm.date}
-                        onChange={(e) => setEventForm(prev => ({ ...prev, date: e.target.value }))}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-semibold text-gray-700">Waktu</label>
-                      <Input
-                        value={eventForm.time}
-                        onChange={(e) => setEventForm(prev => ({ ...prev, time: e.target.value }))}
-                        placeholder="07:00"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm font-semibold text-gray-700">Lokasi</label>
-                    <Input
-                      value={eventForm.location}
-                      onChange={(e) => setEventForm(prev => ({ ...prev, location: e.target.value }))}
-                      placeholder="Balai RW / aula kampung"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-semibold text-gray-700">Kuota</label>
-                    <Input
-                      type="number"
-                      min={0}
-                      value={String(eventForm.quota)}
-                      onChange={(e) => setEventForm(prev => ({ ...prev, quota: Number(e.target.value || 0) }))}
-                      placeholder="0"
-                    />
-                  </div>
-                  <Button
-                    onClick={handleCreateTier1Event}
-                    disabled={submittingEvent}
-                    className="bg-cyan-600 text-white hover:bg-cyan-700"
-                  >
-                    {submittingEvent ? 'Menyimpan...' : editingEventId ? 'Update Draft Kegiatan' : 'Simpan Draft Kegiatan'}
-                  </Button>
-                  {editingEventId && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        setEditingEventId(null);
-                        setEventForm({
-                          title: '',
-                          description: '',
-                          pillar: '1',
-                          scopeType: 'kelurahan',
-                          kecamatanId: '',
-                          kelurahanId: '',
-                          date: '',
-                          time: '',
-                          location: '',
-                          quota: 0,
-                        });
-                      }}
-                    >
-                      Batal Edit
-                    </Button>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  {draftEvents.length === 0 ? (
-                    <div className="text-sm text-gray-500">Belum ada draft kegiatan terbaru.</div>
-                  ) : (
-                    draftEvents.slice(0, 5).map((event) => (
-                      <div key={event.id} className="p-3 rounded-lg bg-cyan-50">
-                        <div className="font-semibold text-sm">{event.title}</div>
-                        <div className="text-xs text-gray-600">
-                          {event.scopeType === 'kecamatan' ? 'Skala Kecamatan' : 'Skala Kelurahan'} - {event.kecamatan}{event.kelurahan ? ` / ${event.kelurahan}` : ''}
-                        </div>
-                        <div className="text-xs text-gray-600">{event.date || 'Tanggal belum diatur'}</div>
-                        {(event.createdByUserId === user?.id || user?.role === 'admin') && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="mt-2"
-                            onClick={() => handleEditDraftEvent(event)}
-                          >
-                            Edit
-                          </Button>
-                        )}
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <Tier1EventInput
+            eventForm={eventForm}
+            setEventForm={setEventForm}
+            geoOptions={geoOptions}
+            kelurahanOptions={kelurahanOptions}
+            draftEvents={draftEvents}
+            user={user}
+            submittingEvent={submittingEvent}
+            editingEventId={editingEventId}
+            onSubmit={handleCreateTier1Event}
+            onEditDraftEvent={handleEditDraftEvent}
+            onCancelEdit={resetEventForm}
+          />
         )}
 
         {activePage === "events" && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="w-5 h-5" />
-                Kegiatan & Approval
-              </CardTitle>
-              <CardDescription>Tier 2 memverifikasi kegiatan.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {draftEvents.length === 0 && approvedEvents.length === 0 ? (
-                <div className="text-sm text-gray-500">Tidak ada kegiatan menunggu approval atau publish.</div>
-              ) : (
-                <div className="space-y-4">
-                  {draftEvents.length > 0 && (
-                    <div className="space-y-3">
-                      {draftEvents.map((event) => (
-                        <div key={event.id} className="p-3 border rounded-lg bg-white">
-                          <div className="flex items-start justify-between gap-4">
-                            <div>
-                              <div className="font-semibold">{event.title}</div>
-                              <div className="text-xs text-gray-500">
-                                {event.scopeType === 'kecamatan' ? 'Skala Kecamatan' : 'Skala Kelurahan'} - {event.kecamatan}{event.kelurahan ? ` / ${event.kelurahan}` : ''}
-                              </div>
-                              <div className="text-xs text-gray-500">{event.date}</div>
-                            </div>
-                            <Badge className="bg-yellow-400 text-black">Draft</Badge>
-                          </div>
-                          <div className="flex gap-2 mt-3">
-                            <Button
-                              onClick={() => handleEventApproval(event.id, true)}
-                              className="flex-1 bg-green-600 hover:bg-green-700"
-                            >
-                              <CheckCircle className="w-4 h-4 mr-2" />
-                              Approve
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              onClick={() => handleEventApproval(event.id, false)}
-                              className="flex-1"
-                            >
-                              <XCircle className="w-4 h-4 mr-2" />
-                              Reject
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {approvedEvents.length > 0 && (
-                    <div className="space-y-3">
-                      {approvedEvents.map((event) => (
-                        <div key={event.id} className="p-3 border rounded-lg bg-white">
-                          <div className="flex items-start justify-between gap-4">
-                            <div>
-                              <div className="font-semibold">{event.title}</div>
-                              <div className="text-xs text-gray-500">
-                                {event.scopeType === 'kecamatan' ? 'Skala Kecamatan' : 'Skala Kelurahan'} - {event.kecamatan}{event.kelurahan ? ` / ${event.kelurahan}` : ''}
-                              </div>
-                              <div className="text-xs text-gray-500">{event.date}</div>
-                            </div>
-                            <Badge className="bg-emerald-500 text-white">Approved</Badge>
-                          </div>
-                          <div className="flex gap-2 mt-3">
-                            <Button
-                              onClick={() => handleEventPublish(event.id)}
-                              className="flex-1 bg-emerald-600 hover:bg-emerald-700"
-                            >
-                              <ShieldCheck className="w-4 h-4 mr-2" />
-                              Publish
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <EventApprovalQueue
+            draftEvents={draftEvents}
+            approvedEvents={approvedEvents}
+            onEventApproval={handleEventApproval}
+            onEventPublish={handleEventPublish}
+          />
         )}
 
         {activePage === "collab" && moderatorTier === 2 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Handshake className="w-5 h-5" />
-                Permintaan Kolaborasi
-              </CardTitle>
-              <CardDescription>
-                Sponsor Submit - collaboration_request - Tier 2 review.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {pendingCollaborationRequests.length === 0 ? (
-                <div className="text-sm text-gray-500">Tidak ada permintaan kolaborasi pending.</div>
-              ) : (
-                <div className="space-y-3">
-                  {pendingCollaborationRequests.map((request) => (
-                    <div key={request.id} className="rounded-lg border bg-white p-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <div className="font-semibold">{request.organizationName}</div>
-                          <div className="text-xs text-gray-500">PIC: {request.picName} - {request.email}</div>
-                        </div>
-                        <Badge className="bg-yellow-400 text-black">Pending</Badge>
-                      </div>
-                      <div className="mt-3 text-sm text-gray-700">
-                        <span className="font-semibold">Jenis Dukungan:</span>{" "}
-                        {request.supportType === 'media_partner' ? 'Media partner' : request.supportType}
-                      </div>
-                      <div className="mt-1 text-sm text-gray-700">
-                        <span className="font-semibold">Skala:</span>{" "}
-                        {request.contributionScope === "kota"
-                          ? "Kota"
-                          : request.contributionScope === "kecamatan"
-                            ? `Kecamatan${request.scopeKecamatanName ? ` - ${request.scopeKecamatanName}` : ""}`
-                            : `Kelurahan${request.scopeKelurahanName ? ` - ${request.scopeKelurahanName}` : ""}${
-                                request.scopeKecamatanName ? ` (${request.scopeKecamatanName})` : ""
-                              }`}
-                      </div>
-                      <p className="mt-1 text-sm text-gray-700">{request.supportDescription}</p>
-                      <div className="mt-3 flex gap-2">
-                        <Button
-                          onClick={() => handleCollaborationApproval(request.id, true)}
-                          className="flex-1 bg-green-600 hover:bg-green-700"
-                        >
-                          <CheckCircle className="mr-2 h-4 w-4" />
-                          Approve
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          onClick={() => handleCollaborationApproval(request.id, false)}
-                          className="flex-1"
-                        >
-                          <XCircle className="mr-2 h-4 w-4" />
-                          Reject
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <ModeratorCollaborationReview
+            pendingCollaborationRequests={pendingCollaborationRequests}
+            onCollaborationApproval={handleCollaborationApproval}
+          />
         )}
 
         {activePage === "aggregate" && (
@@ -922,42 +279,7 @@ export function ModeratorDashboard({ user, authToken, onLogout, onNavigate, curr
         )}
 
         {moderatorTier === 2 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="w-5 h-5" />
-                Laporan Terverifikasi
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {verifiedReports.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  Belum ada laporan terverifikasi
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {verifiedReports.slice(0, 10).map((report) => {
-                    const reporter = users.find(u => u.id === report.userId);
-                    
-                    return (
-                      <div key={report.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex-1">
-                          <div className="font-semibold text-sm">{reporter?.name || 'Unknown'}</div>
-                          <div className="text-xs text-gray-500">
-                            {new Date(report.createdAt).toLocaleDateString('id-ID')}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <Badge className="bg-green-500">Verified</Badge>
-                          <div className="text-xs text-gray-500 mt-1">{report.points} poin</div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <VerifiedReportList verifiedReports={verifiedReports} users={users} />
         )}
         {/* Profile Tab */}
         {activePage === 'profile' && (

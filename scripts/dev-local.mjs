@@ -1,6 +1,9 @@
 import { spawn } from "node:child_process";
+import { loadEnv } from "./loadEnv.mjs";
 
 const isWindows = process.platform === "win32";
+
+loadEnv();
 
 function startProcess(command, args, label) {
   const child = spawn(command, args, {

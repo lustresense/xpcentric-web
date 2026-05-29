@@ -9,6 +9,21 @@ import uuid
 from datetime import datetime, timezone, timedelta
 
 
+def _voucher_display(row):
+  keys = set(row.keys()) if hasattr(row, "keys") else set()
+  name = row["name"] or ""
+  description = row["description"] if "description" in keys else ""
+  description = description or ""
+  if name.startswith("Voucher Rp"):
+    name = name.replace("Voucher ", "Voucher GoBis ", 1)
+  if "demo simrp" in description.lower():
+    description = (
+      "Voucher transportasi untuk ditukarkan di aplikasi GoBis sebagai akses tiket "
+      "Suroboyo Bus dan layanan angkutan publik terkait."
+    )
+  return name, description
+
+
 def _json(deps, handler, status, payload):
   deps["write_json"](handler, status, payload)
   return True
@@ -37,17 +52,17 @@ def handle_get(handler, conn, path, deps):
       ORDER BY xp_cost ASC, name ASC
       """
     ).fetchall()
-    catalog = [
-      {
+    catalog = []
+    for row in rows:
+      name, description = _voucher_display(row)
+      catalog.append({
         "id": row["id"],
-        "name": row["name"],
-        "description": row["description"] or "",
+        "name": name,
+        "description": description,
         "xpCost": int(row["xp_cost"]),
         "stock": int(row["stock"]),
         "isActive": bool(row["is_active"]),
-      }
-      for row in rows
-    ]
+      })
     return _json(deps, handler, 200, {"catalog": catalog})
 
   return False
@@ -68,7 +83,7 @@ def handle_post(handler, conn, path, body, deps):
     return _json(deps, handler, 400, {"error": "voucherId wajib diisi"})
   voucher = conn.execute(
     """
-    SELECT id, name, xp_cost, stock, is_active
+    SELECT id, name, description, xp_cost, stock, is_active
     FROM voucher_catalog
     WHERE id = ?
     """,
@@ -100,7 +115,7 @@ def handle_post(handler, conn, path, body, deps):
     return _json(deps, handler, 400, {"error": "XP kamu belum cukup untuk menukar voucher ini"})
 
   redemption_id = f"redeem-{uuid.uuid4().hex[:12]}"
-  voucher_code = f"SIMRP-{secrets.token_hex(4).upper()}"
+  voucher_code = f"GOBIS-SIMRP-{secrets.token_hex(4).upper()}"
   expires_at = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
   deps["execute"](
     conn,
@@ -123,7 +138,7 @@ def handle_post(handler, conn, path, body, deps):
     actor["id"],
     "reward.redeem",
     "Penukaran voucher berhasil",
-    f"Kamu menukar {voucher['name']} ({voucher['xp_cost']} XP). Kode: {voucher_code}",
+    f"Kamu menukar {voucher['name']} ({voucher['xp_cost']} XP). Kode GoBis: {voucher_code}",
     "voucher_redemption",
     redemption_id,
   )
@@ -145,11 +160,11 @@ def handle_post(handler, conn, path, body, deps):
       "redemption": {
         "id": redemption_id,
         "voucherId": voucher_id,
-        "voucherName": voucher["name"],
+        "voucherName": _voucher_display(voucher)[0],
         "voucherCode": voucher_code,
         "xpSpent": int(voucher["xp_cost"]),
         "expiresAt": expires_at,
-        "remainingPoints": int(remaining_points_row["points"]) if remaining_points_row else 0,
+        "remainingPoints": max(0, int(remaining_points_row["points"])) if remaining_points_row else 0,
       },
     },
   )

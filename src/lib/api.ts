@@ -73,6 +73,64 @@ export async function apiRequest<T = any>(
   return data as T;
 }
 
+function parseFilename(disposition: string | null) {
+  if (!disposition) {
+    return '';
+  }
+  const encoded = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+  if (encoded?.[1]) {
+    try {
+      return decodeURIComponent(encoded[1].replace(/"/g, ''));
+    } catch {
+      return encoded[1].replace(/"/g, '');
+    }
+  }
+  const plain = disposition.match(/filename="?([^";]+)"?/i);
+  return plain?.[1] || '';
+}
+
+export async function apiDownload(path: string, token?: string | null) {
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}${path}`, {
+      method: 'GET',
+      headers,
+    });
+  } catch {
+    throw { status: 0, message: 'Tidak bisa terhubung ke server lokal API.' } as ApiError;
+  }
+
+  if (response.status === 401) {
+    onUnauthorized?.();
+  }
+
+  if (response.status === 429) {
+    toast.error('Terlalu banyak permintaan, coba lagi nanti.');
+  }
+
+  if (response.status >= 500) {
+    toast.error('Server sedang bermasalah. Coba lagi sebentar.');
+  }
+
+  if (!response.ok) {
+    const contentType = response.headers.get('Content-Type') || '';
+    const data = contentType.includes('application/json')
+      ? await response.json().catch(() => ({}))
+      : {};
+    throw { status: response.status, message: data.error || `Download gagal (${response.status})` } as ApiError;
+  }
+
+  return {
+    blob: await response.blob(),
+    filename: parseFilename(response.headers.get('Content-Disposition')),
+  };
+}
+
 export function apiGet<T = any>(path: string, token?: string | null) {
   return apiRequest<T>(path, { method: 'GET', token });
 }

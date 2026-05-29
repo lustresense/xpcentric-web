@@ -57,7 +57,7 @@ def add_temporary_points(handler, body, client_ip):
         return handler.send_json(400, {"error": f"Penyesuaian poin maksimal {MIN_TEMP_POINTS} sampai {MAX_TEMP_POINTS}"})
     
     now = utc_now_iso()
-    execute("UPDATE users SET points = points + ?, updated_at = ? WHERE id = ?", (points, now, body.get("userId")))
+    execute("UPDATE users SET points = MAX(points + ?, 0), updated_at = ? WHERE id = ?", (points, now, body.get("userId")))
     execute("INSERT INTO temporary_adjustments(id, user_id, adjustment_type, value_json, reason, expires_at, created_at) VALUES(?, ?, 'points', ?, ?, ?, ?)",
             (generate_entity_id("adjust"), body.get("userId"), json.dumps({"points": points}), body.get("reason", "admin points"), 
              (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat(), now))
@@ -181,7 +181,7 @@ def handle_post(handler, conn, path, body, deps):
         reason = deps["bounded_text"](body.get("reason", "admin points"), 300)
         deps["execute"](
             conn,
-            "UPDATE users SET points = points + ?, updated_at = ? WHERE id = ?",
+            "UPDATE users SET points = MAX(points + ?, 0), updated_at = ? WHERE id = ?",
             (points, now, target_user_id),
         )
         deps["execute"](

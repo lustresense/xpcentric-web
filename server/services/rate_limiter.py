@@ -1,6 +1,6 @@
 """
 SIMRP Rate Limiter
-Thread-safe rate limiting for API endpoints.
+Thread-safe rate limiting for API endpoint helpers.
 """
 import time
 import threading

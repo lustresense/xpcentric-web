@@ -19,16 +19,14 @@ def _actor(conn, handler, deps):
   return deps["user_from_token"](conn, _auth_header(handler))
 
 
-def _send_html_download(handler, filename, html_bytes):
+def _send_html_download(handler, filename, html_bytes, deps):
   """Kirim response berupa file HTML yang bisa didownload / dicetak sebagai PDF."""
   handler.send_response(200)
   handler.send_header("Content-Type", "text/html; charset=utf-8")
   handler.send_header("Content-Disposition", f'attachment; filename="{filename}"')
   handler.send_header("Content-Length", str(len(html_bytes)))
-  handler.send_header("X-Content-Type-Options", "nosniff")
-  handler.send_header("X-Frame-Options", "DENY")
-  handler.send_header("Cache-Control", "no-store")
-  handler.send_header("Referrer-Policy", "no-referrer")
+  deps["add_common_headers"](handler)
+  handler.send_header("Access-Control-Expose-Headers", "Content-Disposition")
   handler.end_headers()
   handler.wfile.write(html_bytes)
 
@@ -221,7 +219,7 @@ def handle_get(handler, conn, path, deps):
     safe_title = str(cert["event_title"])[:40].replace("/", "-").replace("\\", "-")
     filename = f"sertifikat-simrp-{cert_id[:8]}-{safe_title}.html"
     html_bytes = _generate_certificate_html(cert)
-    _send_html_download(handler, filename, html_bytes)
+    _send_html_download(handler, filename, html_bytes, deps)
     return True
 
   # GET /certificates/:id/verify — Verifikasi keaslian sertifikat (public)

@@ -1,8 +1,8 @@
 # 🧠 TASK LOG — SIMRP Refactor & Fitur Baru
 
-> **Last Updated:** 2026-05-14
+> **Last Updated:** 2026-05-29
 > **Status:** IN_PROGRESS
-> **Checkpoint Terakhir:** Batch 3 selesai — menunggu Batch 4 Modularisasi Backend Lanjutan
+> **Checkpoint Terakhir:** Batch 7 item 1 selesai - README runtime aktual dan konteks KP diperbarui
 
 ---
 
@@ -27,26 +27,34 @@
 
 ```
 server/
-├── main.py              ← Runtime utama (ThreadingHTTPServer, ~1570 baris)
-├── main_test.py          ← Versi test backend
-├── api/                  ← Modul API (auth, events, reports, dll.)
-│   ├── __init__.py       ← Gabungan route
+├── main.py              ← Runtime utama (ThreadingHTTPServer; dispatch api/* + thin wrappers)
+├── api/                  ← Modul API aktif (dipanggil dari main.py)
+│   ├── __init__.py       ← Package marker aktif; route dict legacy tidak diekspor
 │   ├── auth.py
 │   ├── events.py
 │   ├── reports.py
 │   ├── collaboration.py
 │   ├── geographic.py
-│   ├── xp.py
 │   ├── admin.py
 │   ├── notifications.py
 │   ├── certificates.py
 │   ├── rewards.py
-│   ├── users.py
-│   └── rate_limiter.py
-├── core/                 ← Konfigurasi & helper
+│   └── users.py
+├── core/                 ← Helper murni aktif
 │   ├── config.py
 │   ├── database.py
-│   └── security.py
+│   ├── security.py
+│   └── utils.py
+├── db/                   ← Schema, migration, seed aktif
+│   ├── schema.py
+│   ├── migrations.py
+│   └── seed.py
+├── services/             ← Runtime service helpers aktif
+│   ├── runtime.py
+│   └── rate_limiter.py
+└── legacy/               ← Kode lama yang sudah tidak dipakai runtime
+    ├── api_xp.py
+    └── main_test.py
 src/
 ├── app/
 │   ├── App.tsx           ← SPA Router (state-based)
@@ -107,29 +115,29 @@ src/
 - [x] Perbaiki smoketest.py (sesuaikan endpoint), atau nonaktifkan dengan komentar jika belum sempat.
 
 ### Batch 4: Backend Modularisasi Lanjutan
-- [ ] Batch 4.1 — Update arsitektur task_log berdasarkan audit terbaru: `main.py` ~1570 baris, modul API aktif/legacy diperjelas
-- [ ] Batch 4.2 — Extract pure helpers dari `server/main.py` ke `server/core/*` tanpa ubah behavior
-- [ ] Batch 4.3 — Extract schema, migration, dan seed dari `server/main.py` ke `server/db/*`
-- [ ] Batch 4.4 — Extract service logic ke `server/services/*`: auth/session, audit, notifications, XP, geography, dev credentials, temporary adjustments
-- [ ] Batch 4.5 — Kurangi dependency dictionary di `server/main.py` secara bertahap setelah helper/service aktif
-- [ ] Batch 4.6 — Bersihkan duplicate/dead code: route-dict legacy, `server/api/xp.py`, `server/api/rate_limiter.py`, `server/main_test.py`, setelah usage dicek
-- [ ] Batch 4.7 — Final backend smoke test: health, auth, event approve/publish, join, attendance, complete, report review/verify, certificate, reward, notifications
+- [x] Batch 4.1 — Update arsitektur task_log berdasarkan audit terbaru: `main.py` ~1570 baris, modul API aktif/legacy diperjelas
+- [x] Batch 4.2 — Extract pure helpers dari `server/main.py` ke `server/core/*` tanpa ubah behavior
+- [x] Batch 4.3 — Extract schema, migration, dan seed dari `server/main.py` ke `server/db/*`
+- [x] Batch 4.4 — Extract service logic ke `server/services/*`: auth/session, audit, notifications, XP, geography, dev credentials, temporary adjustments
+- [x] Batch 4.5 — Kurangi dependency dictionary di `server/main.py` secara bertahap setelah helper/service aktif
+- [x] Batch 4.6 — Bersihkan duplicate/dead code: route-dict legacy, `server/api/xp.py`, `server/api/rate_limiter.py`, `server/main_test.py`, setelah usage dicek
+- [x] Batch 4.7 — Final backend smoke test: health, auth, event approve/publish, join, attendance, complete, report review/verify, certificate, reward, notifications
 
 ### Batch 5: Frontend Completeness
-- [ ] Halaman "Event Saya" di UserDashboard (riwayat partisipasi)
-- [ ] Timeline status laporan di detail report
-- [ ] Rank card di profil/halaman dashboard
-- [ ] Tambah tombol/download flow untuk certificate download jika UI belum expose endpoint `/certificates/:id/download`
+- [x] Halaman "Event Saya" di UserDashboard (riwayat partisipasi)
+- [x] Timeline status laporan di detail report
+- [x] Rank card di profil/halaman dashboard
+- [x] Tambah tombol/download flow untuk certificate download jika UI belum expose endpoint `/certificates/:id/download`
 
 ### Batch 6: Frontend Professional Refactor
-- [ ] Split `ModeratorDashboard.tsx` menjadi module kecil: event management, report review, collaboration review, geo/data hooks
+- [x] Split `ModeratorDashboard.tsx` menjadi module kecil: event management, report review, collaboration review, geo/data hooks
 - [ ] Split `UserDashboard.tsx` menjadi module kecil: events, reports, certificates, rewards, attendance, leaderboard
 - [ ] Extract shared notification hook dari DesktopNavbar dan MobileNavbar
 - [ ] Sinkronkan `src/types/index.ts` dengan payload backend aktif
 - [ ] Pastikan semua API call dashboard lewat helper/hook yang konsisten
 
 ### Batch 7: Documentation & Release Readiness
-- [ ] Update README agar sesuai runtime aktual: `main.py` ~1570 baris sekarang, admin env yang benar, endpoint aktif
+- [x] Update README agar sesuai runtime aktual: `server/main.py` kini ~688 baris setelah modularisasi, admin env yang benar, endpoint aktif
 - [ ] Update DEMO_ACCOUNTS sesuai sistem credential lokal terbaru
 - [ ] Update CONTRIBUTOR_SETUP_GUIDE sesuai start/backup script terbaru
 - [ ] Jalankan final validation: `npm run build`, `python -m py_compile`, smoketest end-to-end
@@ -144,10 +152,97 @@ src/
 - Jangan sentuh frontend sebelum Batch 4 minimal selesai Batch 4.1 atau user minta.
 - Jangan hapus legacy code sebelum usage dicek.
 - 2026-05-11: Runtime smoke test endpoint RBAC tidak tuntas karena startup existing DB gagal di migrasi `event_reports_legacy` (`sqlite3.IntegrityError: FOREIGN KEY constraint failed`). Verifikasi sintaks in-memory tetap OK.
+- 2026-05-15: Batch 4.3 dikerjakan bertahap karena schema/migration/seed termasuk high-risk. Substep 1 selesai: base schema `CREATE TABLE IF NOT EXISTS` dipindah ke `server/db/schema.py`, tetapi `migrate_schema()`, `seed_roles()`, `seed_geography()`, `insert_user()`, dan `seed_demo()` masih di `server/main.py`. Next exact step: extract `migrate_schema()` ke `server/db/migrations.py` dengan dependency minimal, lalu validasi ulang DB temporer.
+- 2026-05-15: Audit deploy/login menemukan bug fresh production DB: demo seed default off membuat tabel `users` tidak punya admin, sehingga `/auth/admin-login` gagal setelah credential portal valid. Sudah diperbaiki dengan bootstrap admin minimal via credential env yang ada. Batch 4.3 belum dicentang karena migration/seed belum selesai diekstrak.
+- 2026-05-29: Batch 4.6 usage check menemukan `server/api/rate_limiter.py` masih dipakai oleh `server/api/events.py` dan `server/api/reports.py`; implementasinya dipindah ke `server/services/rate_limiter.py`, lalu import aktif diupdate. `server/api/xp.py` dan `server/main_test.py` dipindah ke `server/legacy/` karena tidak dipakai runtime aktif.
 
 ---
 
 ## 📝 CHANGELOG
+
+### 2026-05-29 - Batch 7 Item 1: README Runtime Aktual dan Konteks KP
+- Menulis ulang `README.md` agar sesuai state aktual: backend modular aktif, `server/main.py` kini sekitar 688 baris, API prefix aktif, env admin yang benar, endpoint aktif, schema SQLite, dan script runtime.
+- Menambahkan konteks lengkap untuk laporan KP Farchan: latar belakang, tujuan, ruang lingkup, metode pengembangan, hasil implementasi, kontribusi teknis, dan roadmap lanjutan.
+- Menjelaskan fitur terbaru: sertifikat preview/download, voucher GoBis, admin dashboard database-style, RBAC wilayah, XP, notifikasi, audit trail, dan validasi smoke test.
+- Verifikasi: dokumentasi-only, tidak mengubah source runtime.
+
+### 2026-05-29 - Batch 6 Item 1: ModeratorDashboard Modular Split
+- Memecah `ModeratorDashboard.tsx` dari 971 baris menjadi shell dashboard 293 baris yang merangkai navbar, summary, dan modul domain.
+- Menambahkan hook `useModeratorDashboardData()` untuk fetch reports/users/events/geo/collaboration, derived lists, form draft event, dan action approval/publish/verify.
+- Memindahkan UI review laporan, daftar laporan terverifikasi, input/approval event, dan review kolaborasi ke modul kecil di `src/app/components/moderator/`.
+- Verifikasi: `npm run build`.
+
+### 2026-05-29 - Batch 5 Item 4: Certificate Download Flow
+- Menambahkan helper `apiDownload()` di `src/lib/api.ts` untuk download file memakai `Authorization` header, bukan token di URL.
+- Menambahkan tombol `Download` pada kartu sertifikat dan modal detail sertifikat di `UserDashboard`.
+- Response HTML download sertifikat sekarang memakai common security/CORS headers dan expose `Content-Disposition` agar filename bisa dibaca frontend.
+- Verifikasi: `python -m py_compile server/main.py server/api/certificates.py` dan `npm run build`.
+
+### 2026-05-29 - Batch 5 Item 3: Rank Card Profil/Dashboard
+- Menambahkan komponen `RankCard` yang memakai helper existing `getProgressToNextLevel()` dan `getPointMultiplier()` dari `src/data/levelingSystem.ts`.
+- Rank card ditampilkan di home `UserDashboard` dan halaman `UserProfile`, berisi level saat ini, nama rank, poin, progress ke level berikutnya, kebutuhan poin, dan multiplier.
+- Verifikasi: `npm run build`.
+
+### 2026-05-29 - Batch 5 Item 2: Timeline Status Laporan
+- Menambahkan tombol `Detail Laporan` pada kartu riwayat partisipasi yang sudah memiliki laporan.
+- Detail laporan menampilkan status, jumlah peserta, poin awarded, outcome tags, alasan penolakan jika ada, dan timeline status: laporan dikirim, review moderator, keputusan akhir.
+- Timeline mendukung status `pending`, `under_review`, `verified`, dan `rejected` tanpa mengubah endpoint backend.
+- Verifikasi: `npm run build`.
+
+### 2026-05-29 - Batch 5 Item 1: Event Saya UserDashboard
+- Menambahkan halaman `Event Saya` di `UserDashboard` dengan data dari endpoint aktif `/users/me/participations`.
+- Halaman menampilkan ringkasan total event, terdaftar, hadir, laporan, serta kartu riwayat partisipasi dengan status event, status kehadiran, dan status laporan.
+- Riwayat partisipasi direfresh setelah user join event dan setelah laporan dikirim dari `ReportingWizard`.
+- Verifikasi: `npm run build`.
+
+### 2026-05-29 - Batch 4.7: Final Backend Smoke Test
+- Menjalankan compile backend relevan: `python -m py_compile server/main.py server/api/__init__.py server/api/events.py server/api/reports.py server/api/auth.py server/api/users.py server/api/notifications.py server/api/certificates.py server/api/rewards.py server/api/admin.py server/api/collaboration.py server/api/geographic.py server/services/runtime.py server/services/rate_limiter.py server/db/__init__.py server/db/schema.py server/db/migrations.py server/db/seed.py smoketest.py`.
+- Menjalankan `python smoketest.py` dengan server temporer dan DB temporer: health, auth, event approve/publish, join, RBAC boundary, reports, certificates, rewards, notifications.
+- Menjalankan supplemental smoke flow untuk attendance, complete event, report review/verify, certificate verify/download, reward redeem, dan notification list/count.
+- Verifikasi: `smoketest.py` (`59 PASS`, `0 FAIL`) + supplemental flow (`24 PASS`, `0 FAIL`).
+
+### 2026-05-29 - Batch 4.6: Cleanup Legacy Backend Files
+- Usage check: `server/api/rate_limiter.py` masih dipakai oleh `server/api/events.py` dan `server/api/reports.py`, sehingga dipindah sebagai service aktif ke `server/services/rate_limiter.py` dan import aktif diupdate.
+- `server/api/xp.py` dipindah ke `server/legacy/api_xp.py`; `server/main_test.py` dipindah ke `server/legacy/main_test.py`; `server/api/__init__.py` dibersihkan agar tidak re-export route dict legacy.
+- Struktur arsitektur di `task_log.md` diperbarui untuk mencerminkan `server/db`, `server/services`, dan `server/legacy`.
+- Verifikasi: `python -m py_compile server/main.py server/api/__init__.py server/api/events.py server/api/reports.py server/services/rate_limiter.py server/legacy/__init__.py server/legacy/api_xp.py server/legacy/main_test.py`.
+
+### 2026-05-29 - Batch 4.5: Reduce Dependency Dictionary Duplication
+- Menambahkan `common_dependencies()` dan `mutable_dependencies()` di `server/main.py` untuk mengurangi duplikasi key dependency lintas modul API.
+- Fungsi `auth_dependencies()`, `events_dependencies()`, `reports_dependencies()`, `collaboration_dependencies()`, `geographic_dependencies()`, `admin_dependencies()`, `notifications_dependencies()`, `certificates_dependencies()`, `rewards_dependencies()`, dan `users_dependencies()` kini hanya mendeklarasikan dependency spesifik modul.
+- Verifikasi: `python -m py_compile server/main.py server/services/__init__.py server/services/runtime.py server/db/__init__.py server/db/schema.py server/db/migrations.py server/db/seed.py` dan smoke cek key dependency untuk auth/events/reports/geo/certificates.
+
+### 2026-05-29 - Batch 4.4: Extract Runtime Service Logic
+- Menambahkan package `server/services/` dan memindahkan logic dev credentials, password hashing/verification, session, audit log, notification, geography parser/stats, temporary adjustments cleanup, dan XP calculation ke `server/services/runtime.py`.
+- `server/main.py` mempertahankan wrapper tipis untuk menjaga dependency dict API tetap stabil dan menghindari perubahan behavior endpoint.
+- Verifikasi: `python -m py_compile server/main.py server/services/__init__.py server/services/runtime.py server/db/__init__.py server/db/schema.py server/db/migrations.py server/db/seed.py`; service smoke test DB temporer untuk session, geo stats, XP apply, notification, audit, dan cleanup adjustments.
+
+### 2026-05-29 - Batch 4.3: Extract DB Schema, Migration, Seed
+- Menambahkan `server/db/migrations.py` untuk `migrate_schema()` dan `server/db/seed.py` untuk seed roles, geography, admin bootstrap, demo users/events/collaboration/vouchers.
+- `server/main.py` sekarang hanya mengorkestrasi DB bootstrap: `create_schema_tables()`, `db_migrate_schema()`, dan seed helpers dari `server/db/*`.
+- Menghapus salinan migration/seed dari `server/main.py` agar logic DB tidak terduplikasi.
+- Verifikasi: `python -m py_compile server/main.py server/db/__init__.py server/db/schema.py server/db/migrations.py server/db/seed.py`; fresh DB temporer demo seed off (`admins=1`) dan demo seed on (`users=9`, `events=4`, `vouchers=2`).
+
+### 2026-05-15 - Deploy Login Blocker Fix
+- `server/main.py` sekarang membaca `.env.local`/`.env` sebelum konfigurasi dibuat, dengan env OS tetap diprioritaskan.
+- Fresh DB production dengan `SIMRP_ENABLE_DEMO_SEED=false` sekarang tetap membuat admin minimal jika belum ada admin, memakai `SIMRP_SEED_ADMIN_PASSWORD` atau fallback aman ke `SIMRP_ADMIN_LOGIN_PASSWORD`.
+- `scripts/dev-local.mjs` memuat `.env.local`/`.env` sebelum menjalankan API dan Vite.
+- `scripts/start_server.bat` diarahkan ke runtime aktif `server/main.py` dan ditambah mode `--check`.
+- Label login relawan/moderator disesuaikan menjadi `Email` karena backend auth aktif memang email-based.
+- Verifikasi: py_compile semua file Python, `npm run build`, full smoke test backend `59 PASS / 0 FAIL`, dan fresh production DB admin login OK dengan demo seed off.
+
+### 2026-05-15 - Batch 4.3 Substep 1: Extract Base Schema
+- Menambahkan package `server/db/` dan memindahkan seluruh SQL base schema `CREATE TABLE IF NOT EXISTS` dari `server/main.py` ke `server/db/schema.py`.
+- `server/main.py` kini memanggil `create_schema_tables(conn)` sebelum `migrate_schema()` dan seed, tanpa mengubah urutan migrasi/seed.
+- Batch 4.3 belum dicentang karena migration dan seed belum diekstrak.
+- Verifikasi: `python -m py_compile server/main.py server/db/__init__.py server/db/schema.py` dan init schema pada DB temporer (`20 expected tables present`).
+
+### 2026-05-14 — Batch 4.2: Extract Pure Helpers
+- Menambahkan `server/core/utils.py` dan mengganti helper murni di `server/main.py` agar menggunakan core utils tanpa ubah behavior.
+- Verifikasi: `python -m py_compile server/main.py server/core/utils.py`.
+
+### 2026-05-14 — Batch 4.1: Update Arsitektur Task Log
+- Memperbarui bagian arsitektur untuk menandai modul aktif vs legacy sesuai audit (main.py ~1570 baris, api/core status).
 
 ### 2026-05-14 — Reprioritization: Backend Modularization Before Frontend
 - Menambahkan Batch 4 Modularisasi Backend Lanjutan berdasarkan audit terbaru.

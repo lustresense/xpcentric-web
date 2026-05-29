@@ -7,7 +7,7 @@ import json
 import uuid
 
 from core import execute, commit, generate_entity_id, utc_now_iso, RATE_LIMIT_MUTATION_MAX
-from api.rate_limiter import check_rate_limit
+from services.rate_limiter import check_rate_limit
 
 
 def get_reports(handler, body, client_ip, query_params=None):
