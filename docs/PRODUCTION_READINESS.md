@@ -30,7 +30,7 @@ SIMRP has been hardened for a credible prototype/demo environment, but it should
 npm install
 npm run build
 python -m py_compile server/main.py
-python smoketest.py
+npm run smoke
 npm audit --audit-level=high
 git diff --check
 ```

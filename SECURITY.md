@@ -34,7 +34,7 @@ Before production-like usage:
 ```bash
 npm run build
 python -m py_compile server/main.py
-python smoketest.py
+npm run smoke
 ```
 
 Review `.env.example`, set strong admin credentials, disable demo seed, and set a strict CORS allowlist.

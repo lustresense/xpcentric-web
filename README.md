@@ -116,14 +116,14 @@ Perintah lain:
 npm run api       # backend saja
 npm run dev:web   # frontend saja
 npm run build     # production build frontend
-python smoketest.py
+npm run smoke     # smoke test backend
 ```
 
 Windows helper:
 
 ```bat
-start_server.bat --check
-backup_database.bat --check
+scripts/start_server.bat --check
+scripts/backup_database.bat --check
 ```
 
 ## Environment Variable Penting
@@ -670,7 +670,7 @@ python -m py_compile server/api/users.py server/api/certificates.py server/api/r
 Full smoke test:
 
 ```bash
-python smoketest.py
+npm run smoke
 ```
 
 Smoke test mencakup:
@@ -730,7 +730,7 @@ Kondisi penting yang perlu diketahui:
 - Notification logic desktop/mobile sudah disatukan di `src/app/components/ui/useNotifications.ts`.
 - `src/types/index.ts` sudah disinkronkan dengan payload backend aktif.
 - Beberapa modul API masih menyimpan sisa route dictionary/handler lama sebagai compatibility/legacy, tetapi runtime aktif menggunakan `handle_get`, `handle_post`, `handle_put`, dan `handle_delete` yang dipanggil dari `server/main.py`.
-- Dokumen publik aktif berada di README root, `docs/`, `DEMO_ACCOUNTS.md`, `CONTRIBUTOR_SETUP_GUIDE.md`, `SECURITY.md`, `CHANGELOG.md`, dan `CONTRIBUTING.md`.
+- Dokumen publik aktif berada di README root, `docs/`, `SECURITY.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, dan `LICENSE.md`.
 
 ## Roadmap Lanjutan
 
@@ -757,7 +757,7 @@ Sebelum dipakai di luar lokal:
 9. Jalankan backend di balik reverse proxy TLS.
 10. Jangan expose `.env`, database runtime, backup, atau `dev_credentials.txt`.
 11. Siapkan backup database rutin.
-12. Jalankan `npm run build` dan `python smoketest.py`.
+12. Jalankan `npm run build` dan `npm run smoke`.
 
 ## Konteks untuk Laporan KP
 

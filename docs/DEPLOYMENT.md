@@ -53,7 +53,7 @@ python server/main.py
 Or on Windows:
 
 ```bat
-start_server.bat
+scripts/start_server.bat
 ```
 
 ## Validate
@@ -61,7 +61,7 @@ start_server.bat
 ```bash
 npm run build
 python -m py_compile server/main.py
-python smoketest.py
+npm run smoke
 ```
 
 ## Data and Backup
@@ -75,7 +75,7 @@ database/runtime/database.db
 Backup helper:
 
 ```bat
-backup_database.bat
+scripts/backup_database.bat
 ```
 
 Do not deploy with local runtime credentials or checked-in database files.

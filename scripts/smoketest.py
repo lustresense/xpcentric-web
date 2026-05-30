@@ -16,7 +16,7 @@ from pathlib import Path
 
 API_PREFIX = "/make-server-32aa5c5c"
 BASE = os.environ.get("SIMRP_SMOKE_BASE", f"http://127.0.0.1:8099{API_PREFIX}").rstrip("/")
-ROOT_DIR = Path(__file__).resolve().parent
+ROOT_DIR = Path(__file__).resolve().parents[1]
 PASS = 0
 FAIL = 0
 SKIP = 0

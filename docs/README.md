@@ -7,6 +7,8 @@ This directory contains the public project documentation that should remain in t
 - [Architecture](ARCHITECTURE.md)
 - [API Reference](API_REFERENCE.md)
 - [Deployment Guide](DEPLOYMENT.md)
+- [Contributor Setup](SETUP.md)
+- [Demo Accounts](DEMO_ACCOUNTS.md)
 - [Production Readiness](PRODUCTION_READINESS.md)
 
 The root [README](../README.md) is the primary overview and can be used as context for academic reporting, demos, or onboarding.

@@ -33,14 +33,14 @@ Sebelum membuat PR atau push besar:
 ```bash
 npm run build
 python -m py_compile server/main.py
-python smoketest.py
+npm run smoke
 ```
 
 Untuk perubahan kecil, jalankan validasi yang relevan:
 
 - Frontend berubah: `npm run build`.
 - Backend berubah: `python -m py_compile server/main.py` dan file Python yang disentuh.
-- Flow besar berubah: `python smoketest.py`.
+- Flow besar berubah: `npm run smoke`.
 
 ## Security Rules
 

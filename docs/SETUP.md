@@ -78,7 +78,7 @@ Command terpisah:
 npm run api       # backend saja
 npm run dev:web   # frontend saja
 npm run build     # build production frontend
-python smoketest.py
+npm run smoke
 ```
 
 ## Environment Lokal
@@ -158,25 +158,25 @@ Jangan commit file runtime database.
 Cek entrypoint backend:
 
 ```bat
-start_server.bat --check
+scripts/start_server.bat --check
 ```
 
 Jalankan backend saja:
 
 ```bat
-start_server.bat
+scripts/start_server.bat
 ```
 
 Cek konfigurasi backup:
 
 ```bat
-backup_database.bat --check
+scripts/backup_database.bat --check
 ```
 
 Buat backup database:
 
 ```bat
-backup_database.bat
+scripts/backup_database.bat
 ```
 
 Backup default disimpan di:
@@ -190,7 +190,7 @@ Path database dan backup bisa dioverride:
 ```powershell
 $env:SIMRP_DB_PATH="database/runtime/database.db"
 $env:SIMRP_BACKUP_DIR="database/backups"
-backup_database.bat
+scripts/backup_database.bat
 ```
 
 ## Workflow Development
@@ -215,7 +215,7 @@ python -m py_compile server/main.py
 Validasi end-to-end backend:
 
 ```bash
-python smoketest.py
+npm run smoke
 ```
 
 ## Troubleshooting
@@ -282,5 +282,5 @@ Sebelum push/PR:
 1. Pastikan perubahan sesuai scope task.
 2. Jalankan `npm run build` jika frontend berubah.
 3. Jalankan `python -m py_compile server/main.py` jika backend berubah.
-4. Jalankan `python smoketest.py` untuk perubahan flow besar.
+4. Jalankan `npm run smoke` untuk perubahan flow besar.
 5. Jangan commit credential, database runtime, backup, atau build output.
