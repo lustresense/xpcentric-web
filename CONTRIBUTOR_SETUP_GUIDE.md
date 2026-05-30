@@ -1,271 +1,286 @@
-# 👋 KONTRIBUTOR - Setup Guide (Super Simpel!)
+# Contributor Setup Guide - SIMRP
 
-> **Dibuat April 2026 - Didesain khusus biar kontributor tidak pusing**
+Panduan ini untuk menjalankan SIMRP di laptop lokal. State runtime yang dijelaskan di sini sesuai project per 2026-05-30.
 
----
-
-## ⚡ TL;DR - Cukup 3 Command
+## Quick Start
 
 ```bash
 npm install
 npm run dev
-# Buka: http://localhost:5173
 ```
 
-**Done!** Aplikasi jalan. Edit file → browser otomatis refresh.
+Lalu buka:
 
----
+```text
+Frontend: http://localhost:5173
+Admin:    http://localhost:5173/admin
+API:      http://127.0.0.1:8000/make-server-32aa5c5c
+```
 
-## 📖 DETAILED GUIDE (Kalau Masih Bingung)
+`npm run dev` menjalankan dua proses sekaligus:
 
-### Before Start: Cek Prerequisites (1 menit)
+1. Backend Python dari `server/main.py`.
+2. Frontend Vite dari `npm run dev:web`.
 
-Buka terminal, ketik:
+Terminal ini harus tetap hidup selama development.
+
+## Prerequisites
+
+Pastikan command berikut tersedia:
+
 ```bash
 node --version
 npm --version
 python --version
 ```
 
-❌ Kalau ada error atau nggak keluar versi?
-1. Download Node.js dari https://nodejs.org (button hijau besar "LTS")
-2. Download Python dari https://www.python.org (PENTING: centang "Add Python to PATH")
-3. Restart komputer
-4. Ulangi cek di atas
+Versi yang disarankan:
 
-✅ Semuanya berhasil? Lanjut ke step berikutnya.
+- Node.js LTS.
+- npm bawaan Node.js.
+- Python 3.
 
----
+Di Windows, jika `python` tidak tersedia, script fallback akan mencoba `py -3`.
 
-### Step 1: Download Project (30 detik)
+## Clone Project
 
-**Opsi A (dari GitHub):**
 ```bash
 git clone <LINK_REPO>
 cd Figmasimrp
 ```
 
-**Opsi B (dari ZIP):**
-1. Extract ZIP ke folder
-2. Buka terminal, masuk ke folder:
-```bash
-cd path/ke/folder/Figmasimrp
-```
+Jika project didapat dari ZIP, extract lalu buka terminal di root project.
 
----
+## Install Dependencies
 
-### Step 2: Install Dependencies (2-5 menit)
-
-Ketik:
 ```bash
 npm install
 ```
 
-**Terminal akan terlihat sibuk beberapa menit.** Ini normal. Tunggu sampai muncul:
-```
-added 1203 packages in 2m
-```
+Dependency frontend ada di `package.json`. Backend memakai Python stdlib, sehingga tidak membutuhkan Flask/FastAPI/Django.
 
-✅ **Kalau berhasil**: Lanjut ke step 3.
+## Jalankan Development Server
 
-❌ **Kalau ada error**:
-- Cek internet (harus stabil)
-- Ulangi `npm install`
-- Kalau masih error, screenshot → tanyakan di #dev-help
-
----
-
-### Step 3: Jalankan Project (1 menit)
-
-Ketik:
 ```bash
 npm run dev
 ```
 
-**Tunggu sampai terminal menampilkan:**
+Script ini memakai `scripts/dev-local.mjs`, yang:
+
+- memuat `.env.local` dan `.env` jika ada;
+- menjalankan backend `server/main.py`;
+- menjalankan Vite melalui `npm run dev:web`;
+- menghentikan backend saat proses Vite berhenti.
+
+Command terpisah:
+
+```bash
+npm run api       # backend saja
+npm run dev:web   # frontend saja
+npm run build     # build production frontend
+python smoketest.py
 ```
-VITE v6.3.5  ready in 456 ms
 
-➜  Local:   http://localhost:5173/
+## Environment Lokal
+
+Environment opsional bisa disimpan di `.env.local`.
+
+```bash
+cp .env.example .env.local
 ```
 
-**JANGAN TUTUP TERMINAL INI!** Biarkan terbuka selamanya saat develop.
+Catatan penting:
 
----
+- Jangan commit `.env.local`.
+- Jika `.env.example` disalin apa adanya, `SIMRP_ENABLE_DEMO_SEED=false`.
+- Jika ingin akun demo lengkap, set `SIMRP_ENABLE_DEMO_SEED=true`.
+- Jika password admin/demo tidak diisi pada development, backend akan membuat password acak dan menulisnya ke `database/runtime/dev_credentials.txt`.
 
-### Step 4: Buka Browser
+Env yang paling sering dipakai:
 
-1. Buka browser (Chrome, Firefox, Edge, Opera, Safari, apapun)
-2. Ketik di address bar: `http://localhost:5173`
-3. Press Enter
+| Env | Fungsi |
+|---|---|
+| `SIMRP_DB_PATH` | Path SQLite runtime, default `database/runtime/database.db` |
+| `SIMRP_ADMIN_LOGIN_USERNAME` | Username halaman `/admin`, default dev `admin` |
+| `SIMRP_ADMIN_LOGIN_PASSWORD` | Password portal admin |
+| `SIMRP_ENABLE_DEMO_SEED` | Aktifkan/nonaktifkan seed demo |
+| `SIMRP_DEMO_PASSWORD` | Password akun demo non-admin |
+| `SIMRP_SEED_ADMIN_PASSWORD` | Password bootstrap akun admin DB |
+| `VITE_API_BASE_URL` | Base URL API untuk frontend |
 
-🎉 **SELESAI!** Aplikasi sudah jalan.
+## Demo Accounts
 
----
+Lihat `DEMO_ACCOUNTS.md` untuk daftar akun lengkap.
 
-## 🎮 Test Features Dengan Demo Account
+Ringkas:
 
-Project sudah punya akun siap pakai. Cukup login:
-
-### Username & Password Semua Demo Account
-**Password semuanya sama:** `password123`
-
-| Role | Email |
-|------|-------|
+| Role | Login |
+|---|---|
+| Admin portal | `/admin`, username default `admin` |
 | Relawan | `relawan.demo@simrp.app` |
-| Moderator | `moderator2.demo@simrp.app` |
-| Admin | Buka `/admin` → username: `admin` |
+| KSH | `ksh.demo@simrp.app` |
+| ASN Tier 1 | `moderator1.demo@simrp.app` |
+| Lurah Tier 2 | `moderator2.demo@simrp.app` |
+| Camat Tier 2 | `moderator2.camat@simrp.app` |
+| Moderator Tier 3 | `moderator3.demo@simrp.app` |
 
-**Test apa**: Ikut event → lihat poin naik → enjoy!
+Password:
 
----
+- Gunakan `SIMRP_DEMO_PASSWORD` jika sudah diset.
+- Jika tidak diset, baca `database/runtime/dev_credentials.txt`.
 
-## 💻 Edit Code & Lihat Perubahan
+## Database Runtime
 
-### Setiap kali buat perubahan di `src/` folder:
-1. Save file (Ctrl+S)
-2. Lihat browser otomatis refresh ✨
-3. Perubahan langsung muncul!
+Default database:
 
-### Kalau ubah Python backend (`server/main.py`):
-1. Buka terminal yang lagi jalanin `npm run dev`
-2. Tekan **Ctrl+C** (stop)
-3. Ketik `npm run dev` lagi
-4. Browser refresh manual
+```text
+database/runtime/database.db
+```
 
----
+Database dibuat otomatis saat backend start. Jika ingin reset data lokal:
 
-## ❓ Ada Error?
+```powershell
+Remove-Item -Recurse -Force database\runtime
+npm run dev
+```
 
-### Error 1: "command not found: npm" atau "python not found"
-**Penyebab**: Belum install atau belum restart komputer
-**Solusi**: 
-1. Install Node.js & Python (lihat "Before Start")
-2. Restart komputer
-3. Ulangi cek versi
+Di Linux/Mac:
 
-### Error 2: Terminal error pas `npm install`
-**Penyebab**: Internet nggak stabil atau ada file conflict
-**Solusi**:
-1. Cek internet (fast.com)
-2. Ulangi `npm install`
-3. Kalau masih error:
-   ```bash
-   rm -rf node_modules package-lock.json
-   npm install
-   ```
-
-### Error 3: Browser blank atau kelihatan error
-**Penyebab**: JavaScript error di browser
-**Solusi**:
-1. Tekan **F12** (buka DevTools)
-2. Klik tab **Console**
-3. Cari error message yang berwarna merah
-4. Baca error → buka file yang bermasalah → baca code
-5. Kalau nggak bisa, screenshot error → tanyakan di #dev-help
-
-### Error 4: Port 5173 atau 8000 sudah dipakai
-**Penyebab**: Aplikasi lain pakai port yang sama
-**Solusi**:
-1. Tutup aplikasi lain yang pakai port itu
-2. Atau jalankan `npm run dev` di folder lain
-
-### Error 5: Database corrupted
-**Gejala**: Error tentang "database", atau "Cannot read property"
-**Solusi**:
 ```bash
 rm -rf database/runtime
 npm run dev
 ```
-Database akan di-generate ulang otomatis.
 
----
+Jangan commit file runtime database.
 
-## 🔄 Sehari-Hari Workflow
+## Helper Script Windows
 
-**Pagi (mulai develop):**
-1. Buka folder project di terminal
-2. Ketik `npm run dev`
-3. Buka `http://localhost:5173` di browser
-4. Mulai edit code
+Cek entrypoint backend:
 
-**Siang (while developing):**
-- Edit file di `src/` → Save → Browser refresh otomatis
-- Pakai browser DevTools (F12) untuk debug
-- Test dengan demo account
+```bat
+start_server.bat --check
+```
 
-**Malam (selesai):**
-1. Tekan **Ctrl+C** di terminal (stop)
-2. Commit code: 
-   ```bash
-   git add .
-   git commit -m "Add feature XYZ"
-   git push origin branch-name
-   ```
+Jalankan backend saja:
 
----
+```bat
+start_server.bat
+```
 
-## 🏆 Contribute
+Cek konfigurasi backup:
 
-### Step untuk submit code ke project:
+```bat
+backup_database.bat --check
+```
 
-1. **Fork repository** di GitHub (buat copy)
-2. **Clone fork kamu**:
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/Figmasimrp.git
-   ```
-3. **Buat branch baru**:
-   ```bash
-   git checkout -b feature-nama-fitur
-   ```
-4. **Code menggunakan `npm run dev`** (test setiap saat)
-5. **Commit**:
-   ```bash
-   git commit -m "Add: clear feature description"
-   ```
-6. **Push**:
-   ```bash
-   git push origin feature-nama-fitur
-   ```
-7. **Buat Pull Request** (PR) di GitHub dengan deskripsi detail
+Buat backup database:
 
-**PR akan di-review sebelum merge ke main.**
+```bat
+backup_database.bat
+```
 
----
+Backup default disimpan di:
 
-## 🆘 STUCK?
+```text
+database/backups/
+```
 
-### Langkah sebelum nanya:
+Path database dan backup bisa dioverride:
 
-1. **Baca** README.md utama (di root folder)
-2. **Google** error message (copy-paste paste error ke Google)
-3. **Cek** console (F12 → Console tab) untuk error
-4. **Screenshot** terminal error → paste di #dev-help
+```powershell
+$env:SIMRP_DB_PATH="database/runtime/database.db"
+$env:SIMRP_BACKUP_DIR="database/backups"
+backup_database.bat
+```
 
-### Informasi yang helpful saat nanya:
-- Screenshot error (terminal + console browser)
-- Apa yang kamu lakukan pas error terjadi
-- Sudah coba apa aja?
-- OS kamu (Windows/Mac/Linux)?
-- Node/Python version? (ketik `node --version`, `python --version`)
+## Workflow Development
 
----
+1. Jalankan `npm run dev`.
+2. Edit file frontend di `src/`; Vite akan hot reload.
+3. Jika mengubah backend Python, hentikan terminal dengan `Ctrl+C`, lalu jalankan `npm run dev` lagi.
+4. Jalankan validasi sesuai perubahan.
 
-## 📚 Dokumentasi Lengkap
+Validasi frontend:
 
-**Main README.md**: `/README.md` - Dokumentasi lengkap semua fitur
+```bash
+npm run build
+```
 
-**Key Sections**:
-- 🚀 Quick Start (3 langkah)
-- 👥 Demo Accounts (6 akun siap pakai)
-- 🎯 Fitur Utama (penjelasan feature)
-- 🏗️ Arsitektur (tech stack)
-- 🧪 Testing Fitur (cara test setiap role)
-- 🛠️ Developer Commands (semua command)
-- 🏆 Contributing (PR workflow)
+Validasi backend:
 
----
+```bash
+python -m py_compile server/main.py
+```
 
-**Selamat! Kamu ready jadi kontributor! 🚀**
+Validasi end-to-end backend:
 
-*Happy Coding!* 💻✨
+```bash
+python smoketest.py
+```
+
+## Troubleshooting
+
+### `npm` tidak ditemukan
+
+Install Node.js LTS, restart terminal, lalu ulangi:
+
+```bash
+node --version
+npm --version
+```
+
+### `python` tidak ditemukan
+
+Install Python 3 dan centang Add Python to PATH. Di Windows, coba:
+
+```bash
+py -3 --version
+```
+
+### Port 5173 atau 8000 sudah dipakai
+
+Tutup proses lama yang masih berjalan, atau ubah port backend dengan:
+
+```powershell
+$env:SIMRP_PORT="8001"
+npm run dev
+```
+
+Jika backend port diubah, sesuaikan `VITE_API_BASE_URL`.
+
+### Login demo gagal
+
+Periksa:
+
+1. `SIMRP_ENABLE_DEMO_SEED=true` jika ingin akun demo non-admin.
+2. Password di `database/runtime/dev_credentials.txt`.
+3. Jika `.env.local` baru diubah, restart `npm run dev`.
+4. Jika database sudah telanjur dibuat tanpa seed demo, reset `database/runtime`.
+
+### Browser blank
+
+1. Buka DevTools dengan F12.
+2. Cek tab Console.
+3. Pastikan backend hidup di `http://127.0.0.1:8000/make-server-32aa5c5c/health`.
+4. Jalankan `npm run build` untuk cek error bundling.
+
+## File Lokal Yang Tidak Boleh Di-commit
+
+```text
+.env
+.env.local
+database/runtime/
+database/backups/
+database/runtime/dev_credentials.txt
+dist/
+```
+
+## Pull Request Checklist
+
+Sebelum push/PR:
+
+1. Pastikan perubahan sesuai scope task.
+2. Jalankan `npm run build` jika frontend berubah.
+3. Jalankan `python -m py_compile server/main.py` jika backend berubah.
+4. Jalankan `python smoketest.py` untuk perubahan flow besar.
+5. Jangan commit credential, database runtime, backup, atau build output.

@@ -11,7 +11,7 @@ import { AboutPage } from '@/app/components/AboutPage';
 import { FaqPage } from '@/app/components/FaqPage';
 import { Button } from '@/app/components/ui/button';
 import { Toaster } from 'sonner';
-import { setOnUnauthorized, apiGet } from '@/lib/api';
+import { API_BASE, setOnUnauthorized, apiGet } from '@/lib/api';
 
 type Page = 'landing' | 'login' | 'register' | 'collaboration' | 'about' | 'faq' | 'admin-login' | 'dashboard' | 'not-found';
 
@@ -163,14 +163,11 @@ export default function App() {
     // Attempt server-side session invalidation (fire-and-forget)
     const token = authToken || localStorage.getItem('simrp_auth_token');
     if (token) {
-      fetch(
-        `${import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/make-server-32aa5c5c'}/auth/logout`,
-        {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: '{}',
-        },
-      ).catch(() => { /* ignore network errors during logout */ });
+      fetch(`${API_BASE}/auth/logout`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: '{}',
+      }).catch(() => { /* ignore network errors during logout */ });
     }
     setCurrentUser(null);
     setAuthToken(null);

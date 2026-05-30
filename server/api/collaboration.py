@@ -95,6 +95,41 @@ def _actor(conn, handler, deps):
     return deps["user_from_token"](conn, _auth_header(handler))
 
 
+def _collaboration_scope_clause(actor):
+    if actor["role_code"] == "admin":
+        return "", []
+    if actor["role_code"] != "moderator_t2":
+        return " AND 1=0", []
+    badge = str(actor["tier2_badge"] or "").strip().lower()
+    if badge == "lurah":
+        return (
+            " AND collaboration_requests.contribution_scope = 'kelurahan'"
+            " AND collaboration_requests.scope_kelurahan_id = ?",
+            [actor["kelurahan_id"]],
+        )
+    if badge == "camat":
+        return (
+            " AND collaboration_requests.contribution_scope IN ('kecamatan','kelurahan')"
+            " AND collaboration_requests.scope_kecamatan_id = ?",
+            [actor["kecamatan_id"]],
+        )
+    return " AND 1=0", []
+
+
+def _can_review_collaboration(actor, row):
+    if actor["role_code"] == "admin":
+        return True
+    if actor["role_code"] != "moderator_t2":
+        return False
+    badge = str(actor["tier2_badge"] or "").strip().lower()
+    scope = row["contribution_scope"] or "kota"
+    if badge == "lurah":
+        return scope == "kelurahan" and row["scope_kelurahan_id"] == actor["kelurahan_id"]
+    if badge == "camat":
+        return scope in ("kecamatan", "kelurahan") and row["scope_kecamatan_id"] == actor["kecamatan_id"]
+    return False
+
+
 def _send_approval_email_stub(row, approved):
     """
     Stub pengiriman email ke mitra saat permintaan kolaborasi di-approve/reject.
@@ -130,8 +165,9 @@ def _send_approval_email_stub(row, approved):
         "from": os.environ.get("SIMRP_EMAIL_FROM", "noreply@simrp.surabaya.go.id"),
     }
     # Stub: log ke stdout. Ganti dengan SMTP call di production.
-    print(f"[EMAIL STUB] Would send approval email to {email_payload['to']} "
-          f"(subject: {email_payload['subject']}, smtp: {email_payload['smtp_host']})")
+    smtp_status = "configured" if os.environ.get("SIMRP_SMTP_HOST") else "not-configured"
+    print(f"[EMAIL STUB] Approval email skipped/simulated "
+          f"(subject: {email_payload['subject']}, smtp: {smtp_status})")
     return email_payload
 
 
@@ -164,6 +200,9 @@ def handle_get(handler, conn, path, query, deps):
     if status_filter in ("pending", "approved", "rejected"):
         sql += " AND collaboration_requests.status = ?"
         params.append(status_filter)
+    scope_sql, scope_params = _collaboration_scope_clause(actor)
+    sql += scope_sql
+    params.extend(scope_params)
     sql += " ORDER BY collaboration_requests.created_at DESC"
     rows = conn.execute(sql, tuple(params)).fetchall()
     requests = []
@@ -272,13 +311,16 @@ def handle_post(handler, conn, path, body, deps):
         row = conn.execute(
             """
             SELECT id, status, organization_name, submitted_by_user_id,
-                   email, pic_name, support_type, support_description
+                   email, pic_name, support_type, support_description,
+                   contribution_scope, scope_kecamatan_id, scope_kelurahan_id
             FROM collaboration_requests WHERE id = ?
             """,
             (req_id,),
         ).fetchone()
         if not row:
             return _json(deps, handler, 404, {"error": "Permintaan tidak ditemukan"})
+        if not _can_review_collaboration(actor, row):
+            return _json(deps, handler, 403, {"error": "Permintaan kolaborasi di luar kewenangan wilayah"})
         if row["status"] != "pending":
             return _json(deps, handler, 400, {"error": "Permintaan sudah diproses"})
         approved = bool(body.get("approved"))

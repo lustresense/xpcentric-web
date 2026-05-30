@@ -8,17 +8,18 @@ README ini sengaja dibuat lengkap agar bisa langsung dipakai sebagai bahan konte
 
 SIMRP menyimulasikan sistem partisipasi warga untuk program kampung di Surabaya. Relawan dapat mendaftar kegiatan, hadir, mengirim laporan, memperoleh XP, melihat leaderboard, mendapat sertifikat digital, dan menukar XP menjadi voucher transportasi GoBis/Suroboyo Bus. KSH dan ASN/moderator mengelola kegiatan serta memverifikasi laporan sesuai kewenangan wilayah. Admin mengawasi database pengguna, event, laporan, role, dan penyesuaian sementara.
 
-Status teknis per 2026-05-29:
+Status teknis per 2026-05-30:
 
 - Frontend: React 18 + Vite 6, UI berbasis TSX components.
 - Backend: Python stdlib `ThreadingHTTPServer`, tanpa Flask/FastAPI/Django.
 - Database: SQLite runtime di `database/runtime/database.db`.
 - API prefix: `/make-server-32aa5c5c`.
 - Runtime utama backend: `server/main.py`.
-- `server/main.py` saat ini sekitar 688 baris setelah modularisasi besar dari versi lama sekitar 1570 baris.
+- `server/main.py` saat ini sekitar 585 baris setelah modularisasi besar dari versi lama sekitar 1570 baris.
+- `UserDashboard.tsx` sudah dipisah ke modul domain kecil.
 - Dashboard moderator sudah dipisah ke modul kecil.
 - Dashboard admin sudah dibuat ulang menjadi database-style interface mirip Notion.
-- `UserDashboard.tsx` masih besar dan menjadi target refactor berikutnya.
+- Navbar desktop/mobile sudah memakai hook notifikasi bersama.
 
 ## Tujuan Sistem
 
@@ -233,6 +234,7 @@ src/
       PillarRadarChart.tsx
       admin/               Modul dashboard admin database-style
       moderator/           Modul dashboard moderator
+      user/                Modul dashboard user: event, report, sertifikat, reward, attendance, leaderboard
       landing/             Section landing page
       ui/                  Shared UI primitives dan navbar
   data/
@@ -242,7 +244,7 @@ src/
   lib/
     api.ts                 Centralized API client
   types/
-    index.ts               Type definitions lama, masih perlu sinkronisasi payload backend
+    index.ts               Type definitions sinkron dengan payload backend aktif
 ```
 
 ## Arsitektur Backend
@@ -290,7 +292,7 @@ Halaman utama:
 
 Dashboard:
 
-- `UserDashboard.tsx`: masih file besar, berisi event saya, laporan, leaderboard, sertifikat, reward, attendance KSH.
+- `UserDashboard.tsx`: shell dashboard user yang merangkai modul `src/app/components/user/*`.
 - `ModeratorDashboard.tsx`: sudah dipisah ke modul `src/app/components/moderator/*`.
 - `AdminDashboard.tsx`: sudah dipisah dan dibuat database-style di `src/app/components/admin/*`.
 
@@ -511,7 +513,7 @@ Dipakai untuk:
 - reward redeem;
 - collaboration review.
 
-Frontend navbar desktop dan mobile masih punya logic notification yang mirip dan menjadi target refactor ke shared hook.
+Frontend navbar desktop dan mobile memakai hook bersama `useNotifications()` agar polling, unread count, dan mark-read konsisten.
 
 ### 10. Admin Dashboard
 
@@ -525,7 +527,7 @@ Fitur admin:
 - database event;
 - database laporan;
 - verifikasi laporan;
-- God Mode untuk role assignment dan temporary adjustment.
+- Kontrol Admin untuk role assignment dan temporary adjustment berbasis audit.
 
 Perbaikan penting:
 
@@ -715,28 +717,30 @@ Ringkasan pekerjaan yang sudah dilakukan:
 24. Menyesuaikan reward voucher menjadi konteks GoBis/Suroboyo Bus.
 25. Memperbaiki preview sertifikat agar bukan hanya credential/hash.
 26. Memperbaiki hero mobile agar animasi desktop tidak dipaksakan ke mobile.
+27. Memecah user dashboard menjadi modul events, reports, certificates, rewards, attendance, leaderboard, dan data hook.
+28. Mengekstrak shared notification hook untuk desktop/mobile navbar.
+29. Menyinkronkan `src/types/index.ts` dengan payload backend aktif.
+30. Membersihkan repository dari dokumen lama, agent artifacts, dan komponen contoh yang tidak dipakai.
 
 ## Catatan Kode Saat Ini
 
 Kondisi penting yang perlu diketahui:
 
-- `UserDashboard.tsx` masih besar sekitar 1162 baris dan perlu split menjadi modul events, reports, certificates, rewards, attendance, leaderboard.
-- Notification logic masih duplikatif di `DesktopNavbar` dan `MobileNavbar`.
-- `src/types/index.ts` belum sepenuhnya sinkron dengan payload backend aktif.
+- `UserDashboard.tsx` sekarang menjadi shell sekitar 198 baris; logic domain berada di `src/app/components/user/*`.
+- Notification logic desktop/mobile sudah disatukan di `src/app/components/ui/useNotifications.ts`.
+- `src/types/index.ts` sudah disinkronkan dengan payload backend aktif.
 - Beberapa modul API masih menyimpan sisa route dictionary/handler lama sebagai compatibility/legacy, tetapi runtime aktif menggunakan `handle_get`, `handle_post`, `handle_put`, dan `handle_delete` yang dipanggil dari `server/main.py`.
-- README ini mencatat state aktual, sedangkan beberapa dokumen lama mungkin masih menyebut kondisi sebelum modularisasi.
+- Dokumen publik aktif berada di README root, `docs/`, `DEMO_ACCOUNTS.md`, `CONTRIBUTOR_SETUP_GUIDE.md`, `SECURITY.md`, `CHANGELOG.md`, dan `CONTRIBUTING.md`.
 
 ## Roadmap Lanjutan
 
 Task lanjutan yang masih relevan:
 
-1. Split `UserDashboard.tsx` menjadi modul domain kecil.
-2. Extract shared notification hook dari desktop/mobile navbar.
-3. Sinkronkan `src/types/index.ts` dengan backend aktif.
-4. Pastikan semua API call dashboard melewati helper/hook konsisten.
-5. Update `DEMO_ACCOUNTS`.
-6. Update `CONTRIBUTOR_SETUP_GUIDE`.
-7. Jalankan final validation: build frontend, py_compile backend, dan smoke test end-to-end.
+1. Tambahkan automated frontend component/e2e tests untuk dashboard utama.
+2. Tambahkan monitoring/log rotation untuk deployment sungguhan.
+3. Evaluasi migrasi database dari SQLite ke database terkelola jika volume warga besar.
+4. Integrasikan SMTP/email nyata jika approval mitra perlu notifikasi eksternal.
+5. Integrasikan API resmi GoBis bila reward voucher ingin menjadi transaksi nyata.
 
 ## Production Checklist
 
@@ -868,4 +872,4 @@ database/runtime/dev_credentials.txt
 
 ## Status Akhir Dokumen
 
-README ini diperbarui berdasarkan analisis kode aktual di folder `src/` dan `server/` pada 2026-05-29. Dokumen ini dapat digunakan sebagai sumber konteks teknis untuk diskusi, demo prototype, atau penyusunan laporan KP.
+README ini diperbarui berdasarkan analisis kode aktual di folder `src/` dan `server/` pada 2026-05-30. Dokumen ini dapat digunakan sebagai sumber konteks teknis untuk diskusi, demo prototype, atau penyusunan laporan KP.

@@ -5,9 +5,9 @@
 
 import { toast } from 'sonner';
 
-const API_BASE = (
+export const API_BASE = (
   import.meta.env.VITE_API_BASE_URL ||
-  'http://127.0.0.1:8000/make-server-32aa5c5c'
+  (import.meta.env.PROD ? '/make-server-32aa5c5c' : 'http://127.0.0.1:8000/make-server-32aa5c5c')
 ).replace(/\/+$/, '');
 
 let onUnauthorized: (() => void) | null = null;

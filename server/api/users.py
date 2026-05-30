@@ -110,17 +110,39 @@ def handle_get(handler, conn, path, query, deps):
           WHERE 1=1
         """
         params = []
-        if role_filter == "user":
-            sql += " AND users.role_code IN ('user','ksh')"
-        if kampung_filter:
-            sql += " AND users.kelurahan_id = ?"
-            params.append(int(kampung_filter))
         if role_code == "user":
             sql += " AND users.id = ?"
             params.append(actor["id"])
         elif role_code == "ksh":
             sql += " AND users.kelurahan_id = ? AND users.role_code IN ('user','ksh')"
             params.append(actor["kelurahan_id"])
+        elif role_code == "moderator_t1":
+            sql += " AND users.kelurahan_id = ? AND users.role_code IN ('user','ksh')"
+            params.append(actor["kelurahan_id"])
+        elif role_code == "moderator_t2":
+            badge = str(actor["tier2_badge"] or "").strip().lower()
+            if badge == "lurah":
+                sql += " AND users.kelurahan_id = ? AND users.role_code IN ('user','ksh')"
+                params.append(actor["kelurahan_id"])
+            elif badge == "camat":
+                sql += " AND users.kecamatan_id = ? AND users.role_code IN ('user','ksh')"
+                params.append(actor["kecamatan_id"])
+            else:
+                sql += " AND 1=0"
+        elif role_code == "moderator_t3":
+            sql += " AND users.role_code IN ('user','ksh')"
+        elif role_code != "admin":
+            sql += " AND 1=0"
+        if role_filter == "user" and role_code == "admin":
+            sql += " AND users.role_code IN ('user','ksh')"
+        if kampung_filter and role_code == "admin":
+            try:
+                kampung_id = int(kampung_filter)
+            except Exception:
+                write_json(handler, 400, {"error": "kampungId tidak valid"})
+                return True
+            sql += " AND users.kelurahan_id = ?"
+            params.append(kampung_id)
         sql += " ORDER BY users.name ASC"
         rows = conn.execute(sql, tuple(params)).fetchall()
         users = []
@@ -200,8 +222,14 @@ def handle_put(handler, conn, path, body, actor, deps):
         fields.append("updated_at = ?")
         params.append(utc_now_iso())
         params.append(user_id)
-        execute(conn, f"UPDATE users SET {', '.join(fields)} WHERE id = ?", tuple(params))
+        updated = execute(conn, f"UPDATE users SET {', '.join(fields)} WHERE id = ?", tuple(params)).rowcount
+        if updated == 0:
+            write_json(handler, 404, {"error": "User tidak ditemukan"})
+            return True
         row = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+        if not row:
+            write_json(handler, 404, {"error": "User tidak ditemukan"})
+            return True
         write_json(handler, 200, {"success": True, "user": get_user_payload(conn, row)})
         return True
 

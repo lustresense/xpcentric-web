@@ -20,7 +20,7 @@ export function ModeratorCollaborationReview({
           Permintaan Kolaborasi
         </CardTitle>
         <CardDescription>
-          Sponsor Submit - collaboration_request - Tier 2 review.
+          Review pengajuan dukungan mitra sesuai kewenangan wilayah.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -58,7 +58,7 @@ export function ModeratorCollaborationReview({
                     className="flex-1 bg-green-600 hover:bg-green-700"
                   >
                     <CheckCircle className="mr-2 h-4 w-4" />
-                    Approve
+                    Setujui
                   </Button>
                   <Button
                     variant="destructive"
@@ -66,7 +66,7 @@ export function ModeratorCollaborationReview({
                     className="flex-1"
                   >
                     <XCircle className="mr-2 h-4 w-4" />
-                    Reject
+                    Tolak
                   </Button>
                 </div>
               </div>

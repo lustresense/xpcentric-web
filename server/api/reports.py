@@ -141,6 +141,16 @@ def _can_moderate_report(actor, event):
     return False
 
 
+def _event_matches_actor_region(actor, event):
+    if not actor or not event:
+        return False
+    if event["scope_type"] == "kelurahan":
+        return bool(actor["kelurahan_id"]) and event["kelurahan_id"] == actor["kelurahan_id"]
+    if event["scope_type"] == "kecamatan":
+        return bool(actor["kecamatan_id"]) and event["kecamatan_id"] == actor["kecamatan_id"]
+    return False
+
+
 def handle_get(handler, conn, path, query, deps):
     api_prefix = deps["API_PREFIX"]
 
@@ -152,6 +162,8 @@ def handle_get(handler, conn, path, query, deps):
         return _json(deps, handler, 401, {"error": "Unauthorized"})
     status_filter = query.get("status", [None])[0] if query else None
     user_filter = query.get("userId", [None])[0] if query else None
+    if status_filter and status_filter not in ("pending", "under_review", "verified", "rejected"):
+        return _json(deps, handler, 400, {"error": "Status laporan tidak valid"})
     sql = "SELECT * FROM event_reports WHERE 1=1"
     params = []
     if status_filter:
@@ -160,9 +172,46 @@ def handle_get(handler, conn, path, query, deps):
     if actor["role_code"] in ("user", "ksh"):
         sql += " AND user_id = ?"
         params.append(actor["id"])
-    elif user_filter:
-        sql += " AND user_id = ?"
-        params.append(user_filter)
+    elif actor["role_code"] == "admin":
+        if user_filter:
+            sql += " AND user_id = ?"
+            params.append(user_filter)
+    elif actor["role_code"] == "moderator_t1":
+        sql += """
+            AND EXISTS (
+              SELECT 1 FROM events
+              WHERE events.id = event_reports.event_id
+                AND events.created_by_user_id = ?
+            )
+        """
+        params.append(actor["id"])
+    elif actor["role_code"] == "moderator_t2":
+        badge = str(actor["tier2_badge"] or "").strip().lower()
+        if badge == "lurah":
+            sql += """
+                AND EXISTS (
+                  SELECT 1 FROM events
+                  WHERE events.id = event_reports.event_id
+                    AND events.scope_type = 'kelurahan'
+                    AND events.kelurahan_id = ?
+                )
+            """
+            params.append(actor["kelurahan_id"])
+        elif badge == "camat":
+            sql += """
+                AND EXISTS (
+                  SELECT 1 FROM events
+                  WHERE events.id = event_reports.event_id
+                    AND events.kecamatan_id = ?
+                )
+            """
+            params.append(actor["kecamatan_id"])
+        else:
+            sql += " AND 1=0"
+    elif actor["role_code"] == "moderator_t3":
+        pass
+    else:
+        sql += " AND 1=0"
     sql += " ORDER BY created_at DESC"
     rows = conn.execute(sql, tuple(params)).fetchall()
     out = []
@@ -203,6 +252,8 @@ def handle_post(handler, conn, path, body, deps):
         event = conn.execute("SELECT * FROM events WHERE id = ?", (event_id,)).fetchone()
         if not event or event["status"] != "completed":
             return _json(deps, handler, 400, {"error": "Laporan hanya setelah event selesai"})
+        if not _event_matches_actor_region(actor, event):
+            return _json(deps, handler, 403, {"error": "Event di luar wilayah relawan"})
         part = conn.execute(
             "SELECT * FROM event_participation WHERE event_id = ? AND user_id = ?",
             (event_id, actor["id"]),

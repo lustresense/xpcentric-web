@@ -156,9 +156,9 @@ require_demo_password()
 status, result = req(
     "POST",
     "/auth/login",
-    {"email": "relawan.demo@simrp.app", "password": DEMO_PASSWORD},
+    {"email": "relawan2.demo@simrp.app", "password": DEMO_PASSWORD},
     expect=200,
-    label="POST /auth/login (relawan)",
+    label="POST /auth/login (relawan Keputih)",
 )
 if "token" in result:
     session_token = result["token"]
@@ -278,7 +278,9 @@ status, result = req(
         "email": "andi@smoketest.co.id",
         "supportType": "dana",
         "supportDescription": "Dukungan dana untuk kegiatan kampung",
-        "contributionScope": "kota",
+        "contributionScope": "kelurahan",
+        "kecamatanId": target_kecamatan_id,
+        "kelurahanId": target_kelurahan_id,
     },
     expect=200,
     label="POST /collaboration-requests (public)",

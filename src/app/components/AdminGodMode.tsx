@@ -1,27 +1,24 @@
-// ADMIN GOD MODE - Full Control dengan Anti-Fraud System
-// Semua manual adjustment bersifat TEMPORARY (expire 24 jam)
-
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/app/components/ui/card';
-import { Button } from '@/app/components/ui/button';
-import { Input } from '@/app/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
-import { Badge } from '@/app/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
-import { 
-  Users, 
-  Shield, 
-  Zap, 
-  Award, 
-  TrendingUp,
-  Clock,
+import { useEffect, useMemo, useState } from 'react';
+import {
   AlertTriangle,
+  Award,
+  Clock,
+  Loader2,
+  Plus,
+  Shield,
+  TrendingUp,
   UserCheck,
   UserMinus,
-  Plus,
-  Loader2
+  Users,
+  Zap,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Badge } from '@/app/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { Input } from '@/app/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
 import { apiGet, apiPost } from '@/lib/api';
 import { getAvailableBadgesForArea } from '@/data/validatedBadges';
 
@@ -32,7 +29,7 @@ interface AdminGodModeProps {
 
 interface TemporaryAdjustment {
   id: string;
-  type: 'points' | 'badge' | 'level';
+  type: 'points' | 'badge';
   value: any;
   reason: string;
   grantedAt: string;
@@ -45,24 +42,29 @@ export function AdminGodMode({ adminUser, authToken }: AdminGodModeProps) {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [temporaryAdjustments, setTemporaryAdjustments] = useState<TemporaryAdjustment[]>([]);
-  
-  // Form states
   const [pointsToAdd, setPointsToAdd] = useState('');
   const [reason, setReason] = useState('');
   const [selectedBadgeId, setSelectedBadgeId] = useState('');
 
-  useEffect(() => {
-    fetchUsers();
-    fetchTemporaryAdjustments();
-  }, []);
+  const managedUsers = useMemo(
+    () => users.filter((user) => user.roleCode !== 'admin' && user.role !== 'admin'),
+    [users],
+  );
+  const adjustableUsers = useMemo(
+    () => users.filter((user) => user.roleCode === 'user' || user.roleCode === 'ksh' || user.role === 'user'),
+    [users],
+  );
+  const availableBadges = selectedUser
+    ? getAvailableBadgesForArea(selectedUser.kecamatan, selectedUser.kelurahan, selectedUser.rw)
+    : [];
 
   const fetchUsers = async () => {
     setLoading(true);
     try {
       const data = await apiGet<any>('/users', authToken);
       setUsers(data.users || []);
-    } catch {
-      toast.error('Gagal memuat daftar pengguna');
+    } catch (err: any) {
+      toast.error(err.message || 'Gagal memuat daftar pengguna');
     } finally {
       setLoading(false);
     }
@@ -73,92 +75,92 @@ export function AdminGodMode({ adminUser, authToken }: AdminGodModeProps) {
       const data = await apiGet<any>('/admin/temporary-adjustments', authToken);
       setTemporaryAdjustments(data.adjustments || []);
     } catch {
-      // Silently ignore — non-critical
+      /* non-critical */
     }
   };
 
-  const handleAssignModeratorRole = async (userId: string) => {
-    if (!confirm('Assign Moderator role? This gives the user verification powers.')) return;
-    
+  useEffect(() => {
+    fetchUsers();
+    fetchTemporaryAdjustments();
+  }, []);
+
+  const handleAssignModeratorRole = async (userId: string, tier2Badge: 'lurah' | 'camat') => {
+    const label = tier2Badge === 'lurah' ? 'Lurah' : 'Camat';
+    if (!confirm(`Jadikan pengguna ini sebagai moderator ${label}? Akses ini memberi kewenangan verifikasi sesuai wilayah.`)) {
+      return;
+    }
     try {
-      await apiPost('/admin/assign-role', { userId, role: 'moderator', reason: 'Assigned by admin' }, authToken);
-      toast.success('Moderator role assigned!');
+      await apiPost('/admin/assign-role', { userId, role: 'moderator', tier2Badge, reason: 'Assigned by admin' }, authToken);
+      toast.success(`Role moderator ${label} diterapkan`);
       fetchUsers();
-    } catch {
-      toast.error('Failed to assign role');
+    } catch (err: any) {
+      toast.error(err.message || 'Gagal mengubah role');
     }
   };
 
   const handleRemoveModeratorRole = async (userId: string) => {
-    if (!confirm('Remove Moderator role? User will lose verification powers.')) return;
-    
+    if (!confirm('Cabut role moderator? Pengguna akan kehilangan kewenangan verifikasi.')) {
+      return;
+    }
     try {
       await apiPost('/admin/remove-role', { userId, role: 'moderator' }, authToken);
-      toast.success('Moderator role removed!');
+      toast.success('Role moderator dicabut');
       fetchUsers();
-    } catch {
-      toast.error('Failed to remove role');
+    } catch (err: any) {
+      toast.error(err.message || 'Gagal mencabut role');
     }
   };
 
   const handleAddTemporaryPoints = async () => {
-    if (!selectedUser || !pointsToAdd || !reason) {
-      toast.error('Please fill all fields');
+    if (!selectedUser || !pointsToAdd || !reason.trim()) {
+      toast.error('Lengkapi pengguna, poin, dan alasan');
       return;
     }
-    
-    const points = parseInt(pointsToAdd);
-    if (isNaN(points) || points <= 0 || points > 500) {
-      toast.error('Points must be between 1-500');
+    const points = Number.parseInt(pointsToAdd, 10);
+    if (Number.isNaN(points) || points <= 0 || points > 500) {
+      toast.error('Poin harus 1-500');
       return;
     }
-    
     try {
       await apiPost('/admin/add-temporary-points', { userId: selectedUser.id, points, reason }, authToken);
-      toast.success(`+${points} points added (expires in 24h)`);
+      toast.success(`+${points} poin ditambahkan sementara`);
       setPointsToAdd('');
       setReason('');
       fetchUsers();
       fetchTemporaryAdjustments();
-    } catch {
-      toast.error('Failed to add points');
+    } catch (err: any) {
+      toast.error(err.message || 'Gagal menambah poin');
     }
   };
 
   const handleAddTemporaryBadge = async () => {
-    if (!selectedUser || !selectedBadgeId || !reason) {
-      toast.error('Please select badge and provide reason');
+    if (!selectedUser || !selectedBadgeId || !reason.trim()) {
+      toast.error('Pilih badge dan tulis alasan');
       return;
     }
-    
     try {
       await apiPost('/admin/add-temporary-badge', { userId: selectedUser.id, badgeId: selectedBadgeId, reason }, authToken);
-      toast.success('Badge added (expires in 24h)');
+      toast.success('Badge sementara ditambahkan');
       setSelectedBadgeId('');
       setReason('');
       fetchUsers();
       fetchTemporaryAdjustments();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to add badge');
+    } catch (err: any) {
+      toast.error(err.message || 'Gagal menambah badge');
     }
   };
 
-  const availableBadges = selectedUser 
-    ? getAvailableBadgesForArea(selectedUser.kecamatan, selectedUser.kelurahan, selectedUser.rw)
-    : [];
-
   return (
     <div className="space-y-4">
-      {/* Warning Banner */}
-      <Card className="border-2 border-yellow-500 bg-yellow-50">
+      <Card className="border-2 border-amber-500 bg-amber-50">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-1" />
+            <AlertTriangle className="mt-1 h-6 w-6 flex-shrink-0 text-amber-700" />
             <div>
-              <div className="font-bold text-yellow-900 mb-1">⚠️ ADMIN GOD MODE - USE RESPONSIBLY</div>
-              <div className="text-sm text-yellow-800">
-                Semua manual adjustment bersifat <strong>TEMPORARY</strong> dan akan <strong>EXPIRE dalam 24 JAM</strong>. 
-                Ini untuk mencegah kecurangan dan abuse of power. Semua aksi tercatat dan dapat di-audit.
+              <div className="mb-1 font-bold text-amber-950">Kontrol Admin - gunakan sesuai audit</div>
+              <div className="text-sm text-amber-900">
+                Semua manual adjustment bersifat temporary dan expire dalam 24 jam. Aksi role, poin, dan badge
+                tercatat di audit trail untuk mencegah penyalahgunaan.
               </div>
             </div>
           </div>
@@ -168,106 +170,106 @@ export function AdminGodMode({ adminUser, authToken }: AdminGodModeProps) {
       <Tabs defaultValue="roles" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="roles">
-            <Shield className="w-4 h-4 mr-2" />
-            Role Management
+            <Shield className="mr-2 h-4 w-4" />
+            Role
           </TabsTrigger>
           <TabsTrigger value="adjustments">
-            <Zap className="w-4 h-4 mr-2" />
-            Temporary Adjustments
+            <Zap className="mr-2 h-4 w-4" />
+            Penyesuaian
           </TabsTrigger>
           <TabsTrigger value="history">
-            <Clock className="w-4 h-4 mr-2" />
-            History
+            <Clock className="mr-2 h-4 w-4" />
+            Riwayat
           </TabsTrigger>
         </TabsList>
 
-        {/* ROLE MANAGEMENT */}
         <TabsContent value="roles">
           <Card>
             <CardHeader>
-              <CardTitle>Discord-Style Role Management</CardTitle>
+              <CardTitle>Manajemen Role ASN</CardTitle>
               <CardDescription>
-                Assign/remove moderator role to users (like Discord roles)
+                Tetapkan kewenangan moderator wilayah untuk akun ASN yang sudah terdaftar.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {users.map(user => (
-                  <div key={user.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        user.role === 'moderator' ? 'bg-blue-100' : 'bg-gray-200'
-                      }`}>
-                        {user.role === 'moderator' ? (
-                          <Shield className="w-5 h-5 text-blue-600" />
-                        ) : (
-                          <Users className="w-5 h-5 text-gray-600" />
-                        )}
-                      </div>
-                      <div>
-                        <div className="font-semibold">{user.name}</div>
-                        <div className="text-xs text-gray-500">
-                          {user.kecamatan} • {user.points} poin
+              {loading ? (
+                <div className="flex items-center justify-center py-10 text-gray-500">
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Memuat pengguna...
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {managedUsers.map((user) => (
+                    <div key={user.id} className="flex flex-col gap-3 rounded-lg bg-gray-50 p-3 md:flex-row md:items-center md:justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                          user.role === 'moderator' ? 'bg-blue-100' : 'bg-gray-200'
+                        }`}>
+                          {user.role === 'moderator' ? (
+                            <Shield className="h-5 w-5 text-blue-600" />
+                          ) : (
+                            <Users className="h-5 w-5 text-gray-600" />
+                          )}
+                        </div>
+                        <div>
+                          <div className="font-semibold">{user.name}</div>
+                          <div className="text-xs text-gray-500">
+                            {user.kelurahan || '-'} - {user.kecamatan || '-'} - {user.points || 0} poin
+                          </div>
                         </div>
                       </div>
+
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge className={user.role === 'moderator' ? 'bg-blue-600' : 'bg-gray-500'}>
+                          {String(user.roleCode || user.role).toUpperCase()}
+                        </Badge>
+                        {user.role === 'user' && (
+                          <>
+                            <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => handleAssignModeratorRole(user.id, 'lurah')}>
+                              <UserCheck className="mr-1 h-4 w-4" />
+                              Lurah
+                            </Button>
+                            <Button size="sm" className="bg-teal-600 hover:bg-teal-700" onClick={() => handleAssignModeratorRole(user.id, 'camat')}>
+                              <UserCheck className="mr-1 h-4 w-4" />
+                              Camat
+                            </Button>
+                          </>
+                        )}
+                        {user.role === 'moderator' && (
+                          <Button size="sm" variant="destructive" onClick={() => handleRemoveModeratorRole(user.id)}>
+                            <UserMinus className="mr-1 h-4 w-4" />
+                            Cabut
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Badge className={user.role === 'moderator' ? 'bg-blue-600' : 'bg-gray-500'}>
-                        {user.role.toUpperCase()}
-                      </Badge>
-                      
-                      {user.role === 'user' && (
-                        <Button
-                          size="sm"
-                          onClick={() => handleAssignModeratorRole(user.id)}
-                          className="bg-blue-600 hover:bg-blue-700"
-                        >
-                          <UserCheck className="w-4 h-4 mr-1" />
-                          Make Moderator
-                        </Button>
-                      )}
-                      
-                      {user.role === 'moderator' && (
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handleRemoveModeratorRole(user.id)}
-                        >
-                          <UserMinus className="w-4 h-4 mr-1" />
-                          Remove Role
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* TEMPORARY ADJUSTMENTS */}
         <TabsContent value="adjustments">
           <Card>
             <CardHeader>
-              <CardTitle>Temporary Adjustments (24h Expire)</CardTitle>
+              <CardTitle>Penyesuaian Sementara (24 Jam)</CardTitle>
               <CardDescription>
-                Add points or badges temporarily - Auto-expire setelah 24 jam
+                Tambah poin atau badge sementara untuk relawan/KSH. Semua tercatat di audit trail.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {/* User Selection */}
                 <div>
-                  <label className="block text-sm font-semibold mb-2">Select User</label>
-                  <Select onValueChange={(val) => setSelectedUser(users.find(u => u.id === val))}>
+                  <label className="mb-2 block text-sm font-semibold">Pilih Relawan/KSH</label>
+                  <Select onValueChange={(value) => setSelectedUser(adjustableUsers.find((user) => user.id === value) || null)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose user..." />
+                      <SelectValue placeholder="Pilih pengguna..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {users.map(user => (
+                      {adjustableUsers.map((user) => (
                         <SelectItem key={user.id} value={user.id}>
-                          {user.name} - {user.role} ({user.points} poin)
+                          {user.name} - {user.roleCode || user.role} ({user.points} poin)
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -276,69 +278,47 @@ export function AdminGodMode({ adminUser, authToken }: AdminGodModeProps) {
 
                 {selectedUser && (
                   <>
-                    {/* Add Points */}
                     <Card className="border-2 border-green-200">
                       <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <TrendingUp className="w-4 h-4" />
-                          Add Temporary Points
+                        <CardTitle className="flex items-center gap-2 text-base">
+                          <TrendingUp className="h-4 w-4" />
+                          Tambah Poin Sementara
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-3">
-                        <Input
-                          type="number"
-                          placeholder="Points (1-500)"
-                          value={pointsToAdd}
-                          onChange={(e) => setPointsToAdd(e.target.value)}
-                          max={500}
-                        />
-                        <Input
-                          placeholder="Reason (required)"
-                          value={reason}
-                          onChange={(e) => setReason(e.target.value)}
-                        />
-                        <Button
-                          onClick={handleAddTemporaryPoints}
-                          className="w-full bg-green-600 hover:bg-green-700"
-                        >
-                          <Plus className="w-4 h-4 mr-2" />
-                          Add Points (Expires in 24h)
+                        <Input type="number" placeholder="Poin (1-500)" value={pointsToAdd} onChange={(event) => setPointsToAdd(event.target.value)} max={500} />
+                        <Input placeholder="Alasan wajib" value={reason} onChange={(event) => setReason(event.target.value)} />
+                        <Button onClick={handleAddTemporaryPoints} className="w-full bg-green-600 hover:bg-green-700">
+                          <Plus className="mr-2 h-4 w-4" />
+                          Tambah Poin Sementara
                         </Button>
                       </CardContent>
                     </Card>
 
-                    {/* Add Badge */}
                     <Card className="border-2 border-purple-200">
                       <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <Award className="w-4 h-4" />
-                          Add Temporary Badge
+                        <CardTitle className="flex items-center gap-2 text-base">
+                          <Award className="h-4 w-4" />
+                          Tambah Badge Sementara
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-3">
                         <Select onValueChange={setSelectedBadgeId}>
                           <SelectTrigger>
-                            <SelectValue placeholder="Choose badge..." />
+                            <SelectValue placeholder="Pilih badge..." />
                           </SelectTrigger>
                           <SelectContent>
-                            {availableBadges.map(badge => (
+                            {availableBadges.map((badge) => (
                               <SelectItem key={badge.id} value={badge.id}>
                                 {badge.icon} {badge.name}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
-                        <Input
-                          placeholder="Reason (required)"
-                          value={reason}
-                          onChange={(e) => setReason(e.target.value)}
-                        />
-                        <Button
-                          onClick={handleAddTemporaryBadge}
-                          className="w-full bg-purple-600 hover:bg-purple-700"
-                        >
-                          <Award className="w-4 h-4 mr-2" />
-                          Add Badge (Expires in 24h)
+                        <Input placeholder="Alasan wajib" value={reason} onChange={(event) => setReason(event.target.value)} />
+                        <Button onClick={handleAddTemporaryBadge} className="w-full bg-purple-600 hover:bg-purple-700">
+                          <Award className="mr-2 h-4 w-4" />
+                          Tambah Badge Sementara
                         </Button>
                       </CardContent>
                     </Card>
@@ -349,40 +329,34 @@ export function AdminGodMode({ adminUser, authToken }: AdminGodModeProps) {
           </Card>
         </TabsContent>
 
-        {/* HISTORY */}
         <TabsContent value="history">
           <Card>
             <CardHeader>
-              <CardTitle>Active Temporary Adjustments</CardTitle>
-              <CardDescription>
-                Will auto-expire after 24 hours
-              </CardDescription>
+              <CardTitle>Riwayat Penyesuaian Aktif</CardTitle>
+              <CardDescription>Otomatis kedaluwarsa setelah 24 jam.</CardDescription>
             </CardHeader>
             <CardContent>
               {temporaryAdjustments.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  No active temporary adjustments
-                </div>
+                <div className="py-8 text-center text-gray-500">Belum ada penyesuaian aktif</div>
               ) : (
                 <div className="space-y-3">
-                  {temporaryAdjustments.map(adj => {
-                    const hoursLeft = Math.max(0, Math.round((new Date(adj.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60)));
-                    
+                  {temporaryAdjustments.map((adjustment) => {
+                    const hoursLeft = Math.max(0, Math.round((new Date(adjustment.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60)));
                     return (
-                      <div key={adj.id} className="p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-start justify-between mb-2">
+                      <div key={adjustment.id} className="rounded-lg bg-gray-50 p-3">
+                        <div className="mb-2 flex items-start justify-between">
                           <div>
-                            <div className="font-semibold">{adj.targetUserName}</div>
-                            <div className="text-sm text-gray-600">{adj.reason}</div>
+                            <div className="font-semibold">{adjustment.targetUserName}</div>
+                            <div className="text-sm text-gray-600">{adjustment.reason}</div>
                           </div>
                           <Badge variant="outline" className="text-xs">
-                            <Clock className="w-3 h-3 mr-1" />
-                            {hoursLeft}h left
+                            <Clock className="mr-1 h-3 w-3" />
+                            {hoursLeft} jam
                           </Badge>
                         </div>
                         <div className="text-xs text-gray-500">
-                          {adj.type === 'points' && `+${adj.value} points`}
-                          {adj.type === 'badge' && `Badge: ${adj.value}`}
+                          {adjustment.type === 'points' && `+${adjustment.value} poin`}
+                          {adjustment.type === 'badge' && `Badge: ${adjustment.value}`}
                         </div>
                       </div>
                     );

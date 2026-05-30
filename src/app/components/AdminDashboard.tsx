@@ -1,20 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Crown, Loader2, LogOut, Settings } from 'lucide-react';
-import { toast } from 'sonner';
 import { AdminGodMode } from '@/app/components/AdminGodMode';
+import { ModeratorCollaborationReview } from '@/app/components/moderator/ModeratorCollaborationReview';
 import {
   AdminEventsDatabase,
   AdminOverview,
   AdminReportsDatabase,
   AdminUsersDatabase,
   safePoints,
+  useAdminDashboardData,
 } from '@/app/components/admin';
 import { POVSwitcher } from '@/app/components/POVSwitcher';
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
 import { getLevelByRole } from '@/data/levelingSystem';
-import { apiGet, apiPost } from '@/lib/api';
 
 interface AdminDashboardProps {
   user: any;
@@ -33,62 +33,19 @@ export function AdminDashboard({
   onViewChange,
 }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState('overview');
-  const [users, setUsers] = useState<any[]>([]);
-  const [events, setEvents] = useState<any[]>([]);
-  const [reports, setReports] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  const {
+    users,
+    events,
+    reports,
+    collaborationRequests,
+    loading,
+    handleVerifyReport,
+    handleCollaborationApproval,
+  } = useAdminDashboardData({ authToken });
+  const pendingCollaborationRequests = collaborationRequests.filter((item) => item.status === 'pending');
 
   const adminPoints = safePoints(user?.points);
   const adminLevel = getLevelByRole('admin', adminPoints);
-
-  useEffect(() => {
-    fetchAllData();
-  }, []);
-
-  const fetchAllData = async () => {
-    setLoading(true);
-    try {
-      await Promise.all([fetchUsers(), fetchEvents(), fetchReports()]);
-    } catch {
-      toast.error('Gagal memuat data admin');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchUsers = async () => {
-    const data = await apiGet('/users', authToken);
-    setUsers(data.users || []);
-  };
-
-  const fetchEvents = async () => {
-    const data = await apiGet('/events', authToken);
-    setEvents(data.events || []);
-  };
-
-  const fetchReports = async () => {
-    const data = await apiGet('/reports', authToken);
-    setReports(data.reports || []);
-  };
-
-  const handleVerifyReport = async (reportId: string, approved: boolean) => {
-    try {
-      let reason = '';
-      if (!approved) {
-        reason = (window.prompt('Masukkan alasan penolakan laporan') || '').trim();
-        if (!reason) {
-          toast.error('Alasan penolakan wajib diisi');
-          return;
-        }
-      }
-
-      await apiPost(`/reports/${reportId}/verify`, { approved, points: approved ? 50 : 0, reason }, authToken);
-      toast.success(approved ? 'Laporan disetujui' : 'Laporan ditolak');
-      await Promise.all([fetchReports(), fetchUsers()]);
-    } catch (err: any) {
-      toast.error(err.message || 'Gagal memverifikasi laporan');
-    }
-  };
 
   return (
     <div className="dark flex min-h-screen w-full flex-col bg-black text-white">
@@ -143,12 +100,15 @@ export function AdminDashboard({
             <TabsTrigger value="reports" className="flex-shrink-0 text-sm text-white/75 hover:bg-white/10 hover:text-white data-[state=active]:bg-white data-[state=active]:text-black">
               Laporan
             </TabsTrigger>
+            <TabsTrigger value="collaboration" className="flex-shrink-0 text-sm text-white/75 hover:bg-white/10 hover:text-white data-[state=active]:bg-white data-[state=active]:text-black">
+              Kolaborasi
+            </TabsTrigger>
             <TabsTrigger
               value="godmode"
               className="flex-shrink-0 border border-fuchsia-300/30 bg-gradient-to-r from-purple-600 to-pink-600 text-sm text-white hover:brightness-110 data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white"
             >
               <Crown className="mr-1 h-4 w-4" />
-              God Mode
+              Kontrol Admin
             </TabsTrigger>
           </TabsList>
 
@@ -177,6 +137,13 @@ export function AdminDashboard({
                   users={users}
                   events={events}
                   onVerifyReport={handleVerifyReport}
+                />
+              </TabsContent>
+
+              <TabsContent value="collaboration" className="space-y-4 text-black">
+                <ModeratorCollaborationReview
+                  pendingCollaborationRequests={pendingCollaborationRequests}
+                  onCollaborationApproval={handleCollaborationApproval}
                 />
               </TabsContent>
 

@@ -166,6 +166,24 @@ def _actor(conn, handler, deps):
     return deps["user_from_token"](conn, _auth_header(handler))
 
 
+def _event_matches_actor_region(actor, event):
+    if not actor or not event:
+        return False
+    if event["scope_type"] == "kelurahan":
+        return bool(actor["kelurahan_id"]) and event["kelurahan_id"] == actor["kelurahan_id"]
+    if event["scope_type"] == "kecamatan":
+        return bool(actor["kecamatan_id"]) and event["kecamatan_id"] == actor["kecamatan_id"]
+    return False
+
+
+def _input_scope_matches_actor_region(actor, scope_type, kecamatan_id, kelurahan_id):
+    if scope_type == "kelurahan":
+        return bool(actor["kelurahan_id"]) and kelurahan_id == actor["kelurahan_id"]
+    if scope_type == "kecamatan":
+        return bool(actor["kecamatan_id"]) and kecamatan_id == actor["kecamatan_id"]
+    return False
+
+
 def handle_get(handler, conn, path, query, deps):
     api_prefix = deps["API_PREFIX"]
 
@@ -193,10 +211,27 @@ def handle_get(handler, conn, path, query, deps):
         sql += " AND ((events.scope_type = 'kelurahan' AND events.kelurahan_id = ?) OR (events.scope_type = 'kecamatan' AND events.kecamatan_id = ?))"
         params.append(actor["kelurahan_id"])
         params.append(actor["kecamatan_id"])
-    elif actor and actor["is_ksh"]:
-        sql += " AND ((events.scope_type = 'kelurahan' AND events.kelurahan_id = ?) OR (events.scope_type = 'kecamatan' AND events.kecamatan_id = ?))"
+    elif actor["role_code"] == "moderator_t1":
+        sql += """
+            AND (
+              events.created_by_user_id = ?
+              OR (events.scope_type = 'kelurahan' AND events.kelurahan_id = ?)
+              OR (events.scope_type = 'kecamatan' AND events.kecamatan_id = ?)
+            )
+        """
+        params.append(actor["id"])
         params.append(actor["kelurahan_id"])
         params.append(actor["kecamatan_id"])
+    elif actor["role_code"] == "moderator_t2":
+        badge = str(actor["tier2_badge"] or "").strip().lower()
+        if badge == "lurah":
+            sql += " AND events.scope_type = 'kelurahan' AND events.kelurahan_id = ?"
+            params.append(actor["kelurahan_id"])
+        elif badge == "camat":
+            sql += " AND events.kecamatan_id = ?"
+            params.append(actor["kecamatan_id"])
+        else:
+            sql += " AND 1=0"
     sql += " ORDER BY events.event_date ASC"
     rows = conn.execute(sql, tuple(params)).fetchall()
     out = []
@@ -268,6 +303,8 @@ def handle_post(handler, conn, path, body, deps):
             kec_exists = conn.execute("SELECT id FROM kecamatan WHERE id = ?", (kecamatan_id,)).fetchone()
             if not kec_exists:
                 return _json(deps, handler, 400, {"error": "Kecamatan tidak ditemukan"})
+        if actor["role_code"] == "moderator_t1" and not _input_scope_matches_actor_region(actor, scope_type, kecamatan_id, kelurahan_id):
+            return _json(deps, handler, 403, {"error": "ASN Tier 1 hanya boleh membuat kegiatan di wilayah tugasnya"})
         try:
             quota = int(body.get("quota", 0))
         except Exception:
@@ -422,6 +459,8 @@ def handle_post(handler, conn, path, body, deps):
         event = conn.execute("SELECT * FROM events WHERE id = ?", (event_id,)).fetchone()
         if not event or event["status"] != "published":
             return _json(deps, handler, 400, {"error": "Event belum dipublish"})
+        if not _event_matches_actor_region(actor, event):
+            return _json(deps, handler, 403, {"error": "Event di luar wilayah relawan"})
         if int(event["quota"]) > 0:
             count = conn.execute("SELECT COUNT(*) AS c FROM event_participation WHERE event_id = ?", (event_id,)).fetchone()["c"]
             if count >= int(event["quota"]):
@@ -612,6 +651,9 @@ def handle_put(handler, conn, path, body, deps):
         kec_exists = conn.execute("SELECT id FROM kecamatan WHERE id = ?", (kecamatan_id,)).fetchone()
         if not kec_exists:
             return _json(deps, handler, 400, {"error": "Kecamatan tidak ditemukan"})
+
+    if actor["role_code"] == "moderator_t1" and not _input_scope_matches_actor_region(actor, scope_type, kecamatan_id, kelurahan_id):
+        return _json(deps, handler, 403, {"error": "ASN Tier 1 hanya boleh mengedit kegiatan di wilayah tugasnya"})
 
     now = deps["utc_now_iso"]()
     deps["execute"](

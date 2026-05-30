@@ -6,7 +6,6 @@
 
 # Dependencies
 node_modules/
-package-lock.json
 
 # Build output
 dist/
@@ -30,7 +29,8 @@ bin/
 pip-selfcheck.json
 
 # Documentation
-docs/logbook/logbook.md
+task_log.md
+USER_FLOW_USECASE.md
 
 # IDE
 .vscode/
@@ -65,6 +65,7 @@ logs/
 .clinerules
 .continuecontext
 .cursorrules
+.qwen/
 .augment/
 .cody/
 .zed/

@@ -3,7 +3,7 @@ import { Home, Calendar, User as UserIcon, Menu, X, LogOut, BadgeCheck, Bell, Ch
 import { motion } from 'motion/react';
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
-import { apiGet, apiPost } from '@/lib/api';
+import { useNotifications } from './useNotifications';
 
 interface DesktopNavbarProps {
   user: any;
@@ -39,9 +39,13 @@ export function DesktopNavbar({
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<any[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const {
+    notifications,
+    unreadCount,
+    loading: notificationsLoading,
+    refreshNotifications,
+    markNotificationRead,
+  } = useNotifications(authToken);
   const isModerator = theme === 'moderator';
 
   const palette = isModerator
@@ -72,71 +76,11 @@ export function DesktopNavbar({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const fetchNotificationCount = async () => {
-    if (!authToken) {
-      setUnreadCount(0);
-      return;
-    }
-    try {
-      const countData = await apiGet('/notifications/count', authToken);
-      setUnreadCount(Number(countData.unread || 0));
-    } catch {
-      // silent: notification polling should not break navigation
-    }
-  };
-
-  const fetchNotifications = async () => {
-    if (!authToken) {
-      setNotifications([]);
-      setUnreadCount(0);
-      return;
-    }
-    setNotificationsLoading(true);
-    try {
-      const [countData, listData] = await Promise.all([
-        apiGet('/notifications/count', authToken),
-        apiGet('/notifications', authToken),
-      ]);
-      setUnreadCount(Number(countData.unread || 0));
-      setNotifications(Array.isArray(listData.notifications) ? listData.notifications : []);
-    } catch {
-      // silent
-    } finally {
-      setNotificationsLoading(false);
-    }
-  };
-
-  const handleMarkNotificationRead = async (notificationId: number) => {
-    if (!authToken) {
-      return;
-    }
-    try {
-      await apiPost(`/notifications/${notificationId}/read`, {}, authToken);
-      setNotifications((prev) => prev.map((item) => (
-        item.id === notificationId ? { ...item, isRead: true } : item
-      )));
-      setUnreadCount((prev) => (prev > 0 ? prev - 1 : 0));
-    } catch {
-      // silent
-    }
-  };
-
-  useEffect(() => {
-    if (!authToken) {
-      return;
-    }
-    fetchNotifications();
-    const timer = window.setInterval(() => {
-      fetchNotificationCount();
-    }, 30_000);
-    return () => window.clearInterval(timer);
-  }, [authToken]);
-
   useEffect(() => {
     if (isNotificationsOpen) {
-      fetchNotifications();
+      refreshNotifications();
     }
-  }, [isNotificationsOpen]);
+  }, [isNotificationsOpen, refreshNotifications]);
 
   return (
     <div className="fixed top-3 left-0 right-0 z-50">
@@ -231,7 +175,7 @@ export function DesktopNavbar({
                           </div>
                           {!item.isRead && (
                             <button
-                              onClick={() => handleMarkNotificationRead(item.id)}
+                              onClick={() => markNotificationRead(item.id)}
                               className="rounded-md border border-gray-200 p-1 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
                               title="Tandai dibaca"
                             >

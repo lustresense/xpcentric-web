@@ -1,119 +1,109 @@
 # Demo Accounts SIMRP
 
-## 🔐 Security Update (April 2026)
+Dokumen ini menjelaskan akun demo yang dibuat oleh seed aktif SIMRP. Password nyata tidak ditulis di repo. Untuk development, password dibuat otomatis atau diambil dari environment variable.
 
-**PENTING**: Untuk production, kredensial admin login harus diset via environment variable.
+Last updated: 2026-05-30
 
-### Admin Login
-- **Username**: `admin` (halaman `/admin`)
-- **Development default**: password dibuat otomatis ke `database/runtime/dev_credentials.txt`
-- **Production**: wajib set `SIMRP_ADMIN_LOGIN_USERNAME` dan `SIMRP_ADMIN_LOGIN_PASSWORD`
-- **Custom password (dev/prod)**: set `SIMRP_ADMIN_LOGIN_PASSWORD=YourPassword`
+## Ringkasan Credential
 
-### User/Moderator Login
-- Semua akun non-admin login dari halaman `/login` (email + password)
-- Password demo development dibuat otomatis ke `database/runtime/dev_credentials.txt`
-- Bisa diganti via `SIMRP_DEMO_PASSWORD`
-- Akun demo otomatis di-sync ke DB saat startup jika `SIMRP_ENABLE_DEMO_SEED=true`
+SIMRP punya dua jalur login:
 
----
+| Jalur | URL | Identifier | Password |
+|---|---|---|---|
+| Admin portal | `/admin` | `SIMRP_ADMIN_LOGIN_USERNAME` default dev: `admin` | `SIMRP_ADMIN_LOGIN_PASSWORD` atau generated lokal |
+| User/moderator | `/login` | email akun demo | `SIMRP_DEMO_PASSWORD` atau generated lokal |
 
-## Kredensial Demo
+Jika env password tidak diisi pada development, backend membuat password acak dan menulis catatannya ke:
 
-| Role | Tier/Mode | Nama | Username/Email | Password | Tujuan Demo |
-|---|---|---|---|---|---|
-| Admin | Super Admin | Administrator | `admin` (halaman `/admin`) | Generated local credential | Login admin, switch view, monitoring global |
-| Moderator | Tier 1 (ASN) | Pak Raka ASN | `moderator1.demo@simrp.app` | Generated local credential | Buat draft kegiatan |
-| Moderator | Tier 2 (Lurah) | Bu Sinta Lurah | `moderator2.demo@simrp.app` | Generated local credential | Approve draft skala kelurahan, verifikasi laporan |
-| Moderator | Tier 2 (Camat) | Pak Dimas Camat | `moderator2.camat@simrp.app` | Generated local credential | Approve draft skala kecamatan |
-| Moderator | Tier 3 | Pak Arif | `moderator3.demo@simrp.app` | Generated local credential | Monitoring agregat/insight |
-| User | Relawan | Andi Relawan | `relawan.demo@simrp.app` | Generated local credential | Join event, submit laporan |
-| User | Relawan | Nia Relawan | `relawan2.demo@simrp.app` | Generated local credential | Simulasi peserta tambahan |
-| User | Relawan | Budi Relawan | `relawan3.demo@simrp.app` | Generated local credential | Simulasi peserta tambahan |
-| User | KSH | Kak Esa | `ksh.demo@simrp.app` | Generated local credential | Tandai event selesai |
+```text
+database/runtime/dev_credentials.txt
+```
 
----
+File tersebut adalah file lokal dan tidak boleh di-commit.
 
-## 🚀 Quick Start untuk Demo
+## Environment Yang Mengontrol Demo
 
-### 1. Start Server
+| Env | Fungsi |
+|---|---|
+| `SIMRP_ENABLE_DEMO_SEED` | Mengaktifkan seed akun/event/voucher demo. Default runtime: `true` di development, `false` di production. |
+| `SIMRP_DEMO_PASSWORD` | Password untuk semua akun demo non-admin. Wajib jika demo seed dinyalakan di production. |
+| `SIMRP_ADMIN_LOGIN_USERNAME` | Username untuk halaman `/admin`. Default development: `admin`. |
+| `SIMRP_ADMIN_LOGIN_PASSWORD` | Password portal admin. Jika kosong di development, dibuat otomatis. |
+| `SIMRP_SEED_ADMIN_PASSWORD` | Password akun admin bootstrap `admin@simrp.local`; jika kosong memakai password admin portal. |
+
+Catatan: jika kamu menyalin `.env.example` apa adanya, `SIMRP_ENABLE_DEMO_SEED=false` sehingga akun demo non-admin tidak dibuat. Untuk demo lokal lengkap, set:
+
+```env
+SIMRP_ENABLE_DEMO_SEED=true
+```
+
+## Akun Demo Seed Aktif
+
+| Role | Nama | Email/Login | Wilayah | Fungsi Demo |
+|---|---|---|---|---|
+| Admin | Administrator | Portal: `admin`; akun DB: `admin@simrp.local` | Keputih | Kelola dashboard admin, kontrol role, data pengguna/event/laporan |
+| Relawan | Andi Relawan | `relawan.demo@simrp.app` | Bulak | Join event, kirim laporan, lihat sertifikat/reward |
+| Relawan | Nia Relawan | `relawan2.demo@simrp.app` | Keputih | Simulasi peserta tambahan |
+| Relawan | Budi Relawan | `relawan3.demo@simrp.app` | Wonorejo | Simulasi peserta tambahan |
+| KSH | Kak Esa | `ksh.demo@simrp.app` | Keputih | Checklist kehadiran dan complete event |
+| ASN Tier 1 | Pak Raka ASN | `moderator1.demo@simrp.app` | Keputih | Membuat draft kegiatan |
+| Lurah / Moderator Tier 2 | Bu Sinta Lurah | `moderator2.demo@simrp.app` | Keputih | Approve/publish event skala kelurahan dan verifikasi laporan wilayah |
+| Camat / Moderator Tier 2 | Pak Dimas Camat | `moderator2.camat@simrp.app` | Kecamatan Keputih | Approve/publish event skala kecamatan dan verifikasi laporan kecamatan |
+| Moderator Tier 3 | Pak Arif | `moderator3.demo@simrp.app` | Keputih | Monitoring agregat/insight prototype |
+
+## Data Demo Tambahan
+
+Saat demo seed aktif, backend juga membuat:
+
+| Data | Isi |
+|---|---|
+| Event | Aksi Bersih Taman Kampung, Pelatihan UMKM Digital, Forum Guyub Warga, Festival Seni Kampung |
+| Kolaborasi mitra | Komunitas Hijau Surabaya, PT Sejahtera Pangan |
+| Voucher reward | Voucher GoBis Rp 10.000 dan Voucher GoBis Rp 25.000 |
+
+Voucher GoBis digunakan sebagai prototype reward transportasi yang bisa ditukarkan melalui aplikasi GoBis untuk akses Suroboyo Bus dan layanan angkutan publik terkait.
+
+## Quick Start Demo
+
+1. Install dependency:
+
+```bash
+npm install
+```
+
+2. Jalankan frontend dan backend:
+
 ```bash
 npm run dev
 ```
 
-### 2. Catat Password Admin
-Default development:
-- Username: `admin`
-- Password: lihat `database/runtime/dev_credentials.txt`
+3. Buka aplikasi:
 
-Jika ingin ubah:
-- set `SIMRP_ADMIN_LOGIN_USERNAME`
-- set `SIMRP_ADMIN_LOGIN_PASSWORD`
-
-### 3. Login Admin
-1. Buka `http://localhost:5173/admin`
-2. Username: `admin`
-3. Password: **dari `database/runtime/dev_credentials.txt`**
-
----
-
-## 🎬 Skenario Demo Cepat (Create -> Approve -> Join -> Report -> Verify)
-
-1. Login `moderator1.demo@simrp.app`: buat draft event.
-2. Login `moderator2.demo@simrp.app` atau `moderator2.camat@simrp.app`: approve draft sesuai scope.
-3. Login relawan (`relawan.demo@simrp.app` / `relawan2.demo@simrp.app`): join event.
-4. Login `ksh.demo@simrp.app`: tandai event selesai.
-5. Login relawan yang sudah join: klik `Lapor Kegiatan` lalu submit report.
-6. Login Tier 2/Admin: verifikasi report (approve/reject).
-7. Cek tab `Leaderboards` untuk lihat perubahan ranking kampung.
-
----
-
-## 🔧 Custom Admin Password (Optional)
-
-Untuk demo dengan password tetap, gunakan environment variable:
-
-### Windows (PowerShell):
-```powershell
-$env:SIMRP_ADMIN_LOGIN_PASSWORD="UseAUniqueStrongPasswordHere"; npm run dev
+```text
+Frontend: http://localhost:5173
+Admin:    http://localhost:5173/admin
+API:      http://127.0.0.1:8000/make-server-32aa5c5c
 ```
 
-### Windows (CMD):
-```cmd
-set SIMRP_ADMIN_LOGIN_PASSWORD=UseAUniqueStrongPasswordHere && npm run dev
-```
+4. Ambil password dari `database/runtime/dev_credentials.txt` jika env password belum diset.
 
-### Linux/Mac:
-```bash
-SIMRP_ADMIN_LOGIN_PASSWORD="UseAUniqueStrongPasswordHere" npm run dev
-```
+## Skenario Demo End-to-End
 
-### Permanent (.env.local):
-```bash
-cp .env.example .env.local
-# Edit .env.local, set:
-SIMRP_ADMIN_LOGIN_PASSWORD=UseAUniqueStrongPasswordHere
-```
+1. Login sebagai `moderator1.demo@simrp.app`, buat draft event.
+2. Login sebagai `moderator2.demo@simrp.app` untuk scope kelurahan atau `moderator2.camat@simrp.app` untuk scope kecamatan, lalu approve dan publish event.
+3. Login sebagai relawan, misalnya `relawan.demo@simrp.app`, lalu join event.
+4. Login sebagai `ksh.demo@simrp.app`, checklist peserta hadir dan complete event.
+5. Login kembali sebagai relawan yang hadir, kirim laporan.
+6. Login sebagai moderator tier 2/admin, review dan verify laporan.
+7. Cek XP, leaderboard, sertifikat digital, notifikasi, dan reward voucher.
 
-### Kontrol Demo Seed
-- `SIMRP_ENABLE_DEMO_SEED=true|false` (default: `true` di development, `false` di production)
-- `SIMRP_DEMO_PASSWORD=...` (jika kosong di development, dibuat otomatis ke `database/runtime/dev_credentials.txt`)
+## Production Notes
 
----
+Sebelum production:
 
-## ⚠️ Production Notes
-
-**JANGAN gunakan password default untuk production!**
-
-Sebelum deploy:
-1. Set `SIMRP_ENV=production`
-2. Set `SIMRP_ADMIN_LOGIN_USERNAME` dan `SIMRP_ADMIN_LOGIN_PASSWORD` dengan strong credential
-3. Set `SIMRP_PBKDF2_ITERATIONS=600000`
-4. Set `SIMRP_ALLOWED_ORIGINS=https://domain-fe-kamu.com`
-5. Pastikan `SIMRP_ENABLE_DEMO_SEED=false`
-6. Review [Production Checklist](./docs/security/PRODUCTION_CHECKLIST.md)
-
----
-
-**Last Updated**: April 2026
-**Version**: 2.0 (Security Updated)
+1. Set `SIMRP_ENV=production`.
+2. Set `SIMRP_ADMIN_LOGIN_USERNAME`.
+3. Set `SIMRP_ADMIN_LOGIN_PASSWORD` dengan password kuat.
+4. Biarkan `SIMRP_ENABLE_DEMO_SEED=false` kecuali memang sedang membuat environment demo.
+5. Jika demo seed production dinyalakan, set `SIMRP_DEMO_PASSWORD` dan `SIMRP_SEED_ADMIN_PASSWORD`.
+6. Jangan commit `.env`, `.env.local`, `database/runtime/`, `database/backups/`, atau `dev_credentials.txt`.

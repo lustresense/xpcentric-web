@@ -84,6 +84,17 @@ def _actor(conn, handler, deps):
     return deps["user_from_token"](conn, _auth_header(handler))
 
 
+def _target_user(conn, target_user_id):
+    return conn.execute(
+        "SELECT id, role_code, badges_json FROM users WHERE id = ?",
+        (target_user_id,),
+    ).fetchone()
+
+
+def _is_admin_target(user_row):
+    return bool(user_row and user_row["role_code"] == "admin")
+
+
 def handle_get(handler, conn, path, deps):
     api_prefix = deps["API_PREFIX"]
 
@@ -136,6 +147,11 @@ def handle_post(handler, conn, path, body, deps):
         target_user_id = str(body.get("userId", "")).strip()
         if not target_user_id:
             return _json(deps, handler, 400, {"error": "userId wajib diisi"})
+        target = _target_user(conn, target_user_id)
+        if not target:
+            return _json(deps, handler, 404, {"error": "User tidak ditemukan"})
+        if _is_admin_target(target):
+            return _json(deps, handler, 400, {"error": "Akun admin tidak boleh diubah lewat role assignment"})
         deps["execute"](
             conn,
             "UPDATE users SET role_code = 'moderator_t2', moderator_tier = 2, tier2_badge = ?, updated_at = ? WHERE id = ?",
@@ -155,6 +171,11 @@ def handle_post(handler, conn, path, body, deps):
         target_user_id = str(body.get("userId", "")).strip()
         if not target_user_id:
             return _json(deps, handler, 400, {"error": "userId wajib diisi"})
+        target = _target_user(conn, target_user_id)
+        if not target:
+            return _json(deps, handler, 404, {"error": "User tidak ditemukan"})
+        if _is_admin_target(target):
+            return _json(deps, handler, 400, {"error": "Akun admin tidak boleh diturunkan lewat endpoint ini"})
         deps["execute"](
             conn,
             "UPDATE users SET role_code = 'user', moderator_tier = NULL, tier2_badge = NULL, updated_at = ? WHERE id = ?",
@@ -171,10 +192,18 @@ def handle_post(handler, conn, path, body, deps):
         return _json(deps, handler, 200, {"success": True})
 
     if path == f"{api_prefix}/admin/add-temporary-points":
-        points = int(body.get("points", 0))
+        try:
+            points = int(body.get("points", 0))
+        except Exception:
+            return _json(deps, handler, 400, {"error": "points harus angka"})
         target_user_id = str(body.get("userId", "")).strip()
         if not target_user_id:
             return _json(deps, handler, 400, {"error": "userId wajib diisi"})
+        target = _target_user(conn, target_user_id)
+        if not target:
+            return _json(deps, handler, 404, {"error": "User tidak ditemukan"})
+        if target["role_code"] not in ("user", "ksh"):
+            return _json(deps, handler, 400, {"error": "Penyesuaian poin hanya untuk relawan/KSH"})
         if points < -500 or points > 500:
             return _json(deps, handler, 400, {"error": "Penyesuaian poin maksimal +/-500"})
         now = deps["utc_now_iso"]()
@@ -216,11 +245,14 @@ def handle_post(handler, conn, path, body, deps):
             return _json(deps, handler, 400, {"error": "userId wajib diisi"})
         if not badge_id:
             return _json(deps, handler, 400, {"error": "badgeId wajib diisi"})
-        user = conn.execute("SELECT badges_json FROM users WHERE id = ?", (target_id,)).fetchone()
+        user = _target_user(conn, target_id)
         if not user:
             return _json(deps, handler, 404, {"error": "User tidak ditemukan"})
+        if user["role_code"] not in ("user", "ksh"):
+            return _json(deps, handler, 400, {"error": "Badge sementara hanya untuk relawan/KSH"})
         badges = json.loads(user["badges_json"] or "[]")
-        badges.append({"id": badge_id, "temporary": True})
+        if not any(item.get("id") == badge_id for item in badges if isinstance(item, dict)):
+            badges.append({"id": badge_id, "temporary": True})
         now = deps["utc_now_iso"]()
         reason = deps["bounded_text"](body.get("reason", "admin badge"), 300)
         deps["execute"](

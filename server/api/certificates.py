@@ -4,6 +4,7 @@ SIMRP Certificates Module.
 Handles certificate listing, verification, and HTML download for printing as PDF.
 """
 import html as html_mod
+import re
 
 
 def _json(deps, handler, status, payload):
@@ -31,6 +32,11 @@ def _send_html_download(handler, filename, html_bytes, deps):
   handler.wfile.write(html_bytes)
 
 
+def _safe_download_filename(value):
+  cleaned = re.sub(r"[^A-Za-z0-9._ -]+", "-", str(value)).strip(" .-")
+  return cleaned or "sertifikat-simrp"
+
+
 def _generate_certificate_html(cert):
   """
   Generate HTML sertifikat yang bisa dicetak sebagai PDF dari browser.
@@ -52,10 +58,9 @@ def _generate_certificate_html(cert):
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sertifikat SIMRP &mdash; {user_name}</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@400;500;600&display=swap');
     * {{ box-sizing: border-box; margin: 0; padding: 0; }}
     body {{
-      font-family: 'Inter', sans-serif;
+      font-family: Arial, Helvetica, sans-serif;
       background: #f8f5f0;
       display: flex;
       justify-content: center;
@@ -100,10 +105,10 @@ def _generate_certificate_html(cert):
     .logo-text .name {{ font-size: 18px; font-weight: 700; color: #2d5a27; }}
     .divider {{ border: none; border-top: 2px solid #2d5a27; margin: 20px auto; width: 80px; }}
     .cert-label {{ font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #888; margin-bottom: 8px; }}
-    .cert-title {{ font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 700; color: #1a3a17; margin-bottom: 24px; }}
+    .cert-title {{ font-family: Georgia, 'Times New Roman', serif; font-size: 36px; font-weight: 700; color: #1a3a17; margin-bottom: 24px; }}
     .awarded-to {{ font-size: 13px; color: #666; margin-bottom: 10px; letter-spacing: 1px; text-transform: uppercase; }}
     .recipient {{
-      font-family: 'Playfair Display', serif;
+      font-family: Georgia, 'Times New Roman', serif;
       font-size: 32px; color: #2d5a27;
       border-bottom: 2px solid #e0e0e0;
       display: inline-block; padding-bottom: 8px; margin-bottom: 24px; min-width: 300px;
@@ -216,8 +221,8 @@ def handle_get(handler, conn, path, deps):
     # RBAC: hanya pemilik sertifikat atau admin yang bisa download (Least Privilege)
     if cert["user_id"] != actor["id"] and actor["role_code"] != "admin":
       return _json(deps, handler, 403, {"error": "Forbidden"})
-    safe_title = str(cert["event_title"])[:40].replace("/", "-").replace("\\", "-")
-    filename = f"sertifikat-simrp-{cert_id[:8]}-{safe_title}.html"
+    safe_title = _safe_download_filename(str(cert["event_title"])[:40])
+    filename = _safe_download_filename(f"sertifikat-simrp-{cert_id[:8]}-{safe_title}") + ".html"
     html_bytes = _generate_certificate_html(cert)
     _send_html_download(handler, filename, html_bytes, deps)
     return True

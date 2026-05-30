@@ -104,7 +104,7 @@ def env_flag(name, default=False):
 
 APP_ENV = str(os.environ.get("SIMRP_ENV", "development")).strip().lower()
 IS_PRODUCTION = APP_ENV in ("prod", "production")
-PBKDF2_ITERATIONS = int(os.environ.get("SIMRP_PBKDF2_ITERATIONS", "210000"))
+PBKDF2_ITERATIONS = int(os.environ.get("SIMRP_PBKDF2_ITERATIONS", "600000" if IS_PRODUCTION else "210000"))
 MAX_BODY_BYTES = int(os.environ.get("SIMRP_MAX_BODY_BYTES", str(8 * 1024 * 1024)))
 SESSION_TTL_HOURS = int(os.environ.get("SIMRP_SESSION_TTL_HOURS", "24" if IS_PRODUCTION else "168"))
 RATE_LIMIT_WINDOW_SECONDS = int(os.environ.get("SIMRP_RATE_LIMIT_WINDOW_SECONDS", "60"))
@@ -114,6 +114,7 @@ HOST = str(os.environ.get("SIMRP_HOST", "0.0.0.0" if IS_PRODUCTION else "127.0.0
 PORT = int(os.environ.get("SIMRP_PORT", "8000"))
 ENABLE_DEMO_SEED = env_flag("SIMRP_ENABLE_DEMO_SEED", not IS_PRODUCTION)
 DEMO_PASSWORD = str(os.environ.get("SIMRP_DEMO_PASSWORD", "")).strip()
+TRUST_PROXY_HEADERS = env_flag("SIMRP_TRUST_PROXY_HEADERS", False)
 
 DEV_ALLOWED_ORIGINS = {
   "http://localhost:5173",
@@ -139,6 +140,38 @@ if ENABLE_DEMO_SEED and not DEMO_PASSWORD:
     "SIMRP_DEMO_PASSWORD",
     DEMO_PASSWORD,
   )
+
+
+def validate_production_config():
+  if not IS_PRODUCTION:
+    return
+
+  errors = []
+  placeholder_passwords = {
+    "",
+    "admin",
+    "password",
+    "password123",
+    "CHANGE_THIS_BEFORE_PRODUCTION_123!",
+  }
+  if not ADMIN_LOGIN_USERNAME:
+    errors.append("SIMRP_ADMIN_LOGIN_USERNAME wajib diisi")
+  if ADMIN_LOGIN_PASSWORD in placeholder_passwords or len(ADMIN_LOGIN_PASSWORD) < 16:
+    errors.append("SIMRP_ADMIN_LOGIN_PASSWORD wajib kuat dan minimal 16 karakter")
+  if ENABLE_DEMO_SEED:
+    errors.append("SIMRP_ENABLE_DEMO_SEED harus false untuk production warga nyata")
+  if PBKDF2_ITERATIONS < 600000:
+    errors.append("SIMRP_PBKDF2_ITERATIONS minimal 600000 untuk production")
+  if SESSION_TTL_HOURS <= 0 or SESSION_TTL_HOURS > 24:
+    errors.append("SIMRP_SESSION_TTL_HOURS production harus 1-24 jam")
+  for origin in ALLOWED_ORIGINS:
+    if origin == "*":
+      errors.append("SIMRP_ALLOWED_ORIGINS tidak boleh memakai wildcard '*'")
+    if origin.startswith("http://") and not origin.startswith(("http://localhost", "http://127.0.0.1")):
+      errors.append(f"SIMRP_ALLOWED_ORIGINS production harus HTTPS: {origin}")
+
+  if errors:
+    raise RuntimeError("Konfigurasi production SIMRP belum aman:\n- " + "\n- ".join(errors))
 
 _rate_lock = threading.Lock()
 _rate_hits = {}
@@ -169,7 +202,7 @@ def bounded_text(value, max_len):
 
 def client_ip(handler):
   forwarded = str(handler.headers.get("X-Forwarded-For", "")).strip()
-  if forwarded:
+  if TRUST_PROXY_HEADERS and forwarded:
     return forwarded.split(",")[0].strip()
   return str(handler.client_address[0] if handler.client_address else "unknown")
 
@@ -305,9 +338,12 @@ def parse_json_body(handler):
   if not raw:
     return {}
   try:
-    return json.loads(raw)
+    parsed = json.loads(raw)
   except json.JSONDecodeError as exc:
     raise ValueError("Format JSON tidak valid") from exc
+  if not isinstance(parsed, dict):
+    raise ValueError("Body JSON harus berupa object")
+  return parsed
 
 
 def create_session(conn, user_id):
@@ -518,6 +554,9 @@ def apply_xp(conn, event_row, participants):
 
 
 class Handler(BaseHTTPRequestHandler):
+  server_version = "SIMRP"
+  sys_version = ""
+
   def do_OPTIONS(self):
     write_json(self, 200, {"ok": True})
 
@@ -673,6 +712,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
+  validate_production_config()
   init_schema()
   write_dev_credentials_file()
   display_host = "127.0.0.1" if HOST in ("0.0.0.0", "::") else HOST

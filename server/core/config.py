@@ -27,6 +27,7 @@ MAX_BODY_BYTES = int(os.environ.get("SIMRP_MAX_BODY_BYTES", str(8 * 1024 * 1024)
 RATE_LIMIT_WINDOW_SECONDS = int(os.environ.get("SIMRP_RATE_LIMIT_WINDOW_SECONDS", "60"))
 RATE_LIMIT_AUTH_MAX = int(os.environ.get("SIMRP_RATE_LIMIT_AUTH_MAX", "10"))
 RATE_LIMIT_MUTATION_MAX = int(os.environ.get("SIMRP_RATE_LIMIT_MUTATION_MAX", "120"))
+TRUST_PROXY_HEADERS = str(os.environ.get("SIMRP_TRUST_PROXY_HEADERS", "")).strip().lower() in {"1", "true", "yes", "on"}
 
 # CORS
 DEV_ALLOWED_ORIGINS = {"http://localhost:5173", "http://127.0.0.1:5173"}
@@ -73,7 +74,7 @@ VALID_PILLARS = {1, 2, 3, 4}
 VALID_ROLE_CODES = {"user", "ksh", "moderator_t1", "moderator_t2", "moderator_t3", "admin"}
 VALID_SCOPE_TYPES = {"kelurahan", "kecamatan"}
 VALID_EVENT_STATUSES = {"draft", "approved", "published", "completed"}
-VALID_REPORT_STATUSES = {"pending", "verified", "rejected"}
+VALID_REPORT_STATUSES = {"pending", "under_review", "verified", "rejected"}
 VALID_PARTICIPATION_STATUSES = {"registered", "attended", "reported"}
 VALID_SUPPORT_TYPES = {"dana", "konsumsi", "peralatan", "media_partner", "lainnya"}
 VALID_CONTRIBUTION_SCOPES = {"kota", "kecamatan", "kelurahan"}

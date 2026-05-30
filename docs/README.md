@@ -1,34 +1,18 @@
-# Dokumentasi Core SIMRP
+# SIMRP Documentation
 
-Direktori ini berisi seluruh rekaman rekayasa sistem, status pengembangan, arsitektur, pedoman keamanan, serta catatan manajemen (logbook).
+This directory contains the public project documentation that should remain in the repository.
 
-## 🗂️ Pemetaan Dokumen Terkini
+## Index
 
-### 📌 Arsitektur & Perancangan (`/architecture`)
-- [GRAND_DESIGN_FINAL.md](./architecture/GRAND_DESIGN_FINAL.md) - Landasan grand design sistem dan business flow.
-- [ARCHITECTURE.md](./architecture/ARCHITECTURE.md) - Dokumentasi stack arsitektur (Vite + Python Modular).
-- [ARCHITECTURE_DIAGRAMS.md](./architecture/ARCHITECTURE_DIAGRAMS.md) - Diagram Mermaid untuk alur sistem teknis.
-- [SITEMAP_IA_SIMRP.md](./architecture/SITEMAP_IA_SIMRP.md) - Information Architecture dan Sitemap UI/UX.
+- [Architecture](ARCHITECTURE.md)
+- [API Reference](API_REFERENCE.md)
+- [Deployment Guide](DEPLOYMENT.md)
+- [Production Readiness](PRODUCTION_READINESS.md)
 
-### 📌 Panduan & Implementasi (`/guides` & `/guidelines`)
-- [PETUNJUK_PENGGUNAAN.md](./guides/PETUNJUK_PENGGUNAAN.md) - Panduan cara menggunakan sistem untuk user dan admin.
-- [DEPLOYMENT.md](./guides/DEPLOYMENT.md) - Tahapan deploy infrastruktur on-prem.
-- [QUICKSTART.md](./guides/QUICKSTART.md) - Langkah cepat setup environment developer.
-- [Guidelines.md](./guidelines/Guidelines.md) - Standard penulisan kode, penamaan asset, dll.
+The root [README](../README.md) is the primary overview and can be used as context for academic reporting, demos, or onboarding.
 
-### 📌 Status Pengembangan (`/status`)
-- [MODULAR_BACKEND_COMPLETE.md](./MODULAR_BACKEND_COMPLETE.md) - Finalisasi backend Modular Python Native.
-- [IMPLEMENTATION_STATUS.md](./status/IMPLEMENTATION_STATUS.md) - Tracker fitur apa saja yang sudah/belum dan bug yang exist.
-- [FINAL_BACKEND_STATUS.md](./FINAL_BACKEND_STATUS.md) - Konklusi status backend tanpa Supabase.
+## Documentation Rules
 
-### 📌 Keamanan & Legal (`/security` & `/legal`)
-- [SECURITY.md](./security/SECURITY.md) - Analisis threat model dan implementasi security standar.
-- [PRODUCTION_SECURITY_CHECKLIST.md](./security/PRODUCTION_SECURITY_CHECKLIST.md) - Checklist sebelum live server.
-- [ATTRIBUTIONS.md](./legal/ATTRIBUTIONS.md) - Daftar library OSS/Font dan lisensi yang digunakan.
-
-### 📌 Arsip Logbook Manajemen (`/logbook`)
-> *Direktori `logbook` terpisah berisi rekaman progres sprint bulanan & harian developer*
-- Berisi Milestone Tracker CSV, Catatan Sprints Day-by-Day.
-
----
-Silahkan jelajahi folder terkait untuk menemukan dokumentasi yang dibutuhkan sesuai konteks area pengembangan.
+- Keep documentation aligned with the actual runtime in `server/main.py`, `server/api/*`, and `src/app/*`.
+- Do not commit private credentials, local runtime notes, or AI-agent task logs.
+- Put temporary planning notes outside the tracked repository.
