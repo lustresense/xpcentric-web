@@ -216,7 +216,7 @@ export function RegisterPage({ onNavigate, onRegister }: RegisterPageProps) {
               Daftar Relawan
             </CardTitle>
             <CardDescription>
-              Bergabung dengan Kampung Pancasila Surabaya
+              Buat akun untuk ikut kegiatan kampung, mengirim laporan, dan menerima sertifikat.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -262,6 +262,7 @@ export function RegisterPage({ onNavigate, onRegister }: RegisterPageProps) {
                     disabled={loading}
                     className="border-gray-300 focus:border-black focus:ring-black rounded-xl"
                   />
+                  <p className="text-xs text-gray-500">Untuk prototype, NIK tidak wajib diisi.</p>
                 </div>
               </div>
 
@@ -320,6 +321,9 @@ export function RegisterPage({ onNavigate, onRegister }: RegisterPageProps) {
                   <span className="bg-black text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">!</span>
                   Informasi Wilayah
                 </h3>
+                <p className="mb-4 text-sm text-gray-500">
+                  Isi kode pos Surabaya agar sistem bisa mencocokkan kecamatan dan kelurahan kamu.
+                </p>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">

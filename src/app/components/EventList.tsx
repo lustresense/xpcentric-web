@@ -19,8 +19,7 @@ export function EventList({ events, authToken, onEventJoined, canJoin = true }: 
   const [joiningEventId, setJoiningEventId] = useState<string | null>(null);
 
   const getPillarName = (pillar: number) => {
-    // 1: Lingkungan, 2: Ekonomi, 3: Kemasyarakatan, 4: Sosial Budaya
-    const pillars = ['Lingkungan', 'Ekonomi', 'Kemasyarakatan', 'Sosial Budaya'];
+    const pillars = ['Lingkungan', 'Gotong Royong', 'Ekonomi Kreatif', 'Keamanan'];
     return pillars[pillar - 1] || 'Umum';
   };
 
@@ -30,9 +29,8 @@ export function EventList({ events, authToken, onEventJoined, canJoin = true }: 
     return colors[pillar - 1] || '#6B7280';
   };
 
-  const getPillarEmoji = (pillar: number) => {
-    const emojis = ['🌱', '🤝', '💼', '🛡️'];
-    return emojis[pillar - 1] || '📌';
+  const getPillarCode = (pillar: number) => {
+    return `P${pillar}`;
   };
 
   const handleJoinEvent = async (eventId: string) => {
@@ -40,10 +38,10 @@ export function EventList({ events, authToken, onEventJoined, canJoin = true }: 
     
     try {
       await apiPost(`/events/${eventId}/join`, {}, authToken);
-      toast.success('Berhasil bergabung dengan event!');
+      toast.success('Berhasil ikut kegiatan.');
       onEventJoined();
     } catch (err: any) {
-      toast.error(err.message || 'Gagal bergabung dengan event');
+      toast.error(err.message || 'Gagal ikut kegiatan');
     } finally {
       setJoiningEventId(null);
     }
@@ -60,8 +58,8 @@ export function EventList({ events, authToken, onEventJoined, canJoin = true }: 
     <div className="p-4 space-y-4">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-black mb-2">Event Kampung</h2>
-        <p className="text-gray-500">Ikuti kegiatan dan kumpulkan poin</p>
+        <h2 className="text-2xl font-bold text-black mb-2">Kegiatan Kampung</h2>
+        <p className="text-gray-500">Pilih kegiatan di wilayah kamu, lalu kumpulkan XP setelah hadir dan melapor.</p>
       </div>
 
       {/* Pillar Filter */}
@@ -85,7 +83,7 @@ export function EventList({ events, authToken, onEventJoined, canJoin = true }: 
               borderColor: getPillarColor(pillar)
             }}
           >
-            {getPillarEmoji(pillar)} {getPillarName(pillar)}
+            {getPillarCode(pillar)} {getPillarName(pillar)}
           </Button>
         ))}
       </div>
@@ -101,8 +99,8 @@ export function EventList({ events, authToken, onEventJoined, canJoin = true }: 
           {upcomingEvents.length === 0 ? (
             <Card>
               <CardContent className="text-center py-8 text-gray-500">
-                Belum ada event mendatang
-                {selectedPillar && ` untuk pilar ${getPillarName(selectedPillar)}`}
+                Belum ada kegiatan mendatang
+                {selectedPillar && ` untuk pilar ${getPillarName(selectedPillar)}`}. Cek lagi setelah ASN atau admin menerbitkan kegiatan baru.
               </CardContent>
             </Card>
           ) : (
@@ -116,7 +114,7 @@ export function EventList({ events, authToken, onEventJoined, canJoin = true }: 
                         style={{ backgroundColor: getPillarColor(event.pillar) }}
                         className="text-white"
                       >
-                        {getPillarEmoji(event.pillar)} {getPillarName(event.pillar)}
+                        {getPillarCode(event.pillar)} {getPillarName(event.pillar)}
                       </Badge>
                     </div>
                     <div className="text-right">
@@ -143,7 +141,7 @@ export function EventList({ events, authToken, onEventJoined, canJoin = true }: 
                           month: 'long',
                           day: 'numeric'
                         })}
-                        {event.time && ` • ${event.time}`}
+                        {event.time && ` - ${event.time}`}
                       </span>
                     </div>
                     
@@ -171,14 +169,14 @@ export function EventList({ events, authToken, onEventJoined, canJoin = true }: 
                      className="w-full bg-[#FFC107] text-black hover:bg-[#FFD54F] font-bold"
                    >
                      {event.quota > 0 && event.participants?.length >= event.quota
-                       ? 'Full'
+                       ? 'Kuota penuh'
                        : joiningEventId === event.id ? (
                          <>
                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                           Bergabung...
+                           Mendaftarkan...
                          </>
                        ) : (
-                         'Gabung Event'
+                         'Ikut Kegiatan'
                        )}
                    </Button>
                 </CardContent>
@@ -191,8 +189,8 @@ export function EventList({ events, authToken, onEventJoined, canJoin = true }: 
           {completedEvents.length === 0 ? (
             <Card>
               <CardContent className="text-center py-8 text-gray-500">
-                Belum ada event selesai
-                {selectedPillar && ` untuk pilar ${getPillarName(selectedPillar)}`}
+                Belum ada kegiatan selesai
+                {selectedPillar && ` untuk pilar ${getPillarName(selectedPillar)}`}. Kegiatan selesai akan muncul setelah KSH/ASN menutup daftar hadir.
               </CardContent>
             </Card>
           ) : (
@@ -206,7 +204,7 @@ export function EventList({ events, authToken, onEventJoined, canJoin = true }: 
                         style={{ backgroundColor: getPillarColor(event.pillar) }}
                         className="text-white"
                       >
-                        {getPillarEmoji(event.pillar)} {getPillarName(event.pillar)}
+                        {getPillarCode(event.pillar)} {getPillarName(event.pillar)}
                       </Badge>
                     </div>
                     <Badge variant="secondary">Selesai</Badge>

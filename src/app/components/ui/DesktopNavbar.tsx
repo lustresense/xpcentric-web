@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Home, Calendar, User as UserIcon, Menu, X, LogOut, BadgeCheck } from 'lucide-react';
+import { Home, Calendar, User as UserIcon, Menu, X, LogOut, BadgeCheck, Bell, Check } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
+import { useNotifications } from './useNotifications';
 
 interface DesktopNavbarProps {
   user: any;
+  authToken?: string | null;
   activePage: string;
   onLogout: () => void;
   onNavigate: (page: any) => void;
@@ -21,6 +23,7 @@ interface DesktopNavbarProps {
 
 export function DesktopNavbar({
   user,
+  authToken,
   activePage,
   onLogout,
   onNavigate,
@@ -35,6 +38,14 @@ export function DesktopNavbar({
 }: DesktopNavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const {
+    notifications,
+    unreadCount,
+    loading: notificationsLoading,
+    refreshNotifications,
+    markNotificationRead,
+  } = useNotifications(authToken);
   const isModerator = theme === 'moderator';
 
   const palette = isModerator
@@ -64,6 +75,12 @@ export function DesktopNavbar({
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (isNotificationsOpen) {
+      refreshNotifications();
+    }
+  }, [isNotificationsOpen, refreshNotifications]);
 
   return (
     <div className="fixed top-3 left-0 right-0 z-50">
@@ -96,11 +113,82 @@ export function DesktopNavbar({
           {/* Menu Button + Dropdown */}
           <div className="relative flex items-center">
             <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              onClick={() => {
+                setIsNotificationsOpen((prev) => !prev);
+                setIsMenuOpen(false);
+              }}
+              className={`mr-2 flex h-10 w-10 items-center justify-center rounded-full border bg-white text-gray-700 shadow-sm transition hover:bg-gray-50 ${palette.border}`}
+            >
+              <Bell className="h-4 w-4 shrink-0" />
+              {unreadCount > 0 && (
+                <span className="absolute -right-1 -top-1 min-w-[20px] rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => {
+                setIsMenuOpen(!isMenuOpen);
+                setIsNotificationsOpen(false);
+              }}
               className={`flex h-10 w-10 items-center justify-center rounded-full text-white shadow-sm transition ${palette.menu}`}
             >
               {isMenuOpen ? <X className="h-4 w-4 shrink-0" /> : <Menu className="h-4 w-4 shrink-0" />}
             </button>
+
+            {isNotificationsOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.15 }}
+                className={`absolute right-12 top-full mt-3 w-96 origin-top-right rounded-2xl border bg-white shadow-xl ${palette.border}`}
+              >
+                <div className="border-b border-gray-100 px-4 py-3">
+                  <p className="text-sm font-bold text-gray-900">Notifikasi</p>
+                  <p className="text-xs text-gray-500">{unreadCount} belum dibaca</p>
+                </div>
+                <div className="max-h-80 overflow-auto p-2">
+                  {notificationsLoading ? (
+                    <div className="px-3 py-6 text-center text-sm text-gray-500">Memuat notifikasi...</div>
+                  ) : notifications.length === 0 ? (
+                    <div className="px-3 py-6 text-center text-sm text-gray-500">Belum ada notifikasi.</div>
+                  ) : (
+                    notifications.map((item) => (
+                      <div
+                        key={item.id}
+                        className={`mb-2 rounded-xl border p-3 ${item.isRead ? 'bg-white border-gray-100' : 'bg-yellow-50 border-yellow-100'}`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-gray-900">{item.title}</p>
+                            <p className="mt-1 text-xs text-gray-600">{item.message}</p>
+                            <p className="mt-2 text-[11px] text-gray-400">
+                              {new Date(item.createdAt).toLocaleString('id-ID', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </p>
+                          </div>
+                          {!item.isRead && (
+                            <button
+                              onClick={() => markNotificationRead(item.id)}
+                              className="rounded-md border border-gray-200 p-1 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
+                              title="Tandai dibaca"
+                            >
+                              <Check className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </motion.div>
+            )}
 
             {/* Dropdown */}
             {isMenuOpen && (

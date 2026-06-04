@@ -97,6 +97,28 @@ API:      http://127.0.0.1:8000/make-server-32aa5c5c
 6. Login sebagai moderator tier 2/admin, review dan verify laporan.
 7. Cek XP, leaderboard, sertifikat digital, notifikasi, dan reward voucher.
 
+## Demo Access Portal Flow
+
+Flow ini dipakai saat demo ingin menunjukkan bahwa relawan bisa mengajukan akses petugas tanpa membuat role moderator aktif sendiri.
+
+1. Daftarkan user umum melalui `/register`. Akun baru selalu menjadi relawan (`user`).
+2. Login sebagai user tersebut melalui `/login`.
+3. Buka `/access`.
+4. Pilih role yang diajukan:
+   - `KSH` untuk petugas kelurahan/RW yang membantu attendance.
+   - `Moderator T1` untuk petugas pembuat draft event.
+   - `Moderator T2` untuk lurah/camat reviewer wilayah.
+5. Pilih scope wilayah. KSH wajib kelurahan; moderator mengikuti scope kelurahan/kecamatan yang sudah dipakai event.
+6. Isi jabatan/keterangan dan alasan demo.
+7. Kirim pengajuan. Status awal adalah `pending`.
+8. Login admin melalui `/admin`.
+9. Buka queue Pengajuan Akses di dashboard admin.
+10. Admin approve atau reject request.
+11. User refresh atau login ulang agar `/auth/me` mengambil payload role terbaru.
+12. Jika disetujui, dashboard berubah sesuai role baru: KSH mendapat fitur attendance, moderator masuk dashboard moderator sesuai tier/scope.
+
+Keputusan produk: `/access` bukan aktivasi moderator langsung. Role KSH/moderator hanya aktif setelah approval admin, dan approval memakai data request yang sudah tersimpan.
+
 ## Production Notes
 
 Sebelum production:

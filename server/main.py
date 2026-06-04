@@ -73,8 +73,12 @@ from core.utils import (
   env_flag as core_env_flag,
   utc_now_iso as core_utc_now_iso,
   valid_email as core_valid_email,
+  normalize_phone_number as core_normalize_phone_number,
+  valid_phone_number as core_valid_phone_number,
   valid_password as core_valid_password,
   bounded_text as core_bounded_text,
+  parse_pagination as core_parse_pagination,
+  pagination_payload as core_pagination_payload,
 )
 
 from db.schema import create_schema_tables
@@ -97,6 +101,7 @@ from api import notifications as notifications_api
 from api import certificates as certificates_api
 from api import rewards as rewards_api
 from api import users as users_api
+from api import access_requests as access_requests_api
 
 
 def env_flag(name, default=False):
@@ -115,6 +120,11 @@ PORT = int(os.environ.get("SIMRP_PORT", "8000"))
 ENABLE_DEMO_SEED = env_flag("SIMRP_ENABLE_DEMO_SEED", not IS_PRODUCTION)
 DEMO_PASSWORD = str(os.environ.get("SIMRP_DEMO_PASSWORD", "")).strip()
 TRUST_PROXY_HEADERS = env_flag("SIMRP_TRUST_PROXY_HEADERS", False)
+OTP_PROVIDER = str(os.environ.get("SIMRP_OTP_PROVIDER", "disabled" if IS_PRODUCTION else "dev")).strip().lower()
+OTP_SECRET = str(os.environ.get("SIMRP_OTP_SECRET", "")).strip()
+OTP_TTL_MINUTES = int(os.environ.get("SIMRP_OTP_TTL_MINUTES", "10"))
+OTP_MAX_ATTEMPTS = int(os.environ.get("SIMRP_OTP_MAX_ATTEMPTS", "5"))
+OTP_REQUIRE_VERIFICATION = env_flag("SIMRP_OTP_REQUIRE_VERIFICATION", False)
 
 DEV_ALLOWED_ORIGINS = {
   "http://localhost:5173",
@@ -140,6 +150,13 @@ if ENABLE_DEMO_SEED and not DEMO_PASSWORD:
     "SIMRP_DEMO_PASSWORD",
     DEMO_PASSWORD,
   )
+if OTP_PROVIDER not in ("disabled", "dev"):
+  raise RuntimeError("SIMRP_OTP_PROVIDER saat ini harus 'disabled' atau 'dev'")
+if OTP_PROVIDER != "disabled" and not OTP_SECRET:
+  if IS_PRODUCTION:
+    raise RuntimeError("SIMRP_OTP_SECRET wajib diisi saat OTP aktif di production")
+  OTP_SECRET = generate_runtime_secret()
+  record_dev_credential("OTP development provider", "provider=dev", "SIMRP_OTP_SECRET", OTP_SECRET)
 
 
 def validate_production_config():
@@ -164,6 +181,12 @@ def validate_production_config():
     errors.append("SIMRP_PBKDF2_ITERATIONS minimal 600000 untuk production")
   if SESSION_TTL_HOURS <= 0 or SESSION_TTL_HOURS > 24:
     errors.append("SIMRP_SESSION_TTL_HOURS production harus 1-24 jam")
+  if OTP_REQUIRE_VERIFICATION and OTP_PROVIDER == "disabled":
+    errors.append("SIMRP_OTP_PROVIDER tidak boleh disabled jika SIMRP_OTP_REQUIRE_VERIFICATION=true")
+  if OTP_PROVIDER == "dev":
+    errors.append("SIMRP_OTP_PROVIDER=dev tidak boleh dipakai untuk production warga nyata")
+  if OTP_PROVIDER != "disabled" and len(OTP_SECRET) < 32:
+    errors.append("SIMRP_OTP_SECRET minimal 32 karakter saat OTP aktif")
   for origin in ALLOWED_ORIGINS:
     if origin == "*":
       errors.append("SIMRP_ALLOWED_ORIGINS tidak boleh memakai wildcard '*'")
@@ -188,8 +211,28 @@ def verify_password(password, encoded):
   return runtime_services.verify_password(password, encoded, PBKDF2_ITERATIONS)
 
 
+def generate_otp_code():
+  return runtime_services.generate_otp_code()
+
+
+def hash_otp_code(code):
+  return runtime_services.hash_otp_code(code, OTP_SECRET)
+
+
+def verify_otp_code(code, encoded):
+  return runtime_services.verify_otp_code(code, encoded, OTP_SECRET)
+
+
 def valid_email(email):
   return core_valid_email(email)
+
+
+def normalize_phone_number(value):
+  return core_normalize_phone_number(value)
+
+
+def valid_phone_number(value):
+  return core_valid_phone_number(value)
 
 
 def valid_password(password):
@@ -433,6 +476,7 @@ def get_user_payload(conn, user_row):
     "kampung": kampung,
     "points": max(0, int(user_row["points"])),
     "badges": json.loads(user_row["badges_json"] or "[]"),
+    "phoneVerified": bool(user_row["phone_verified"]),
     "hasPendingReport": bool(pending),
     "developerNote": "Definition of Kampung may shift in future (RW vs Kelurahan). Logic must stay flexible.",
   }
@@ -453,6 +497,8 @@ def can_verify_report(user):
 def common_dependencies(**extra):
   deps = {
     "API_PREFIX": API_PREFIX,
+    "pagination_payload": core_pagination_payload,
+    "parse_pagination": core_parse_pagination,
     "user_from_token": user_from_token,
     "write_json": write_json,
   }
@@ -477,11 +523,21 @@ def auth_dependencies():
     RATE_LIMIT_AUTH_MAX=RATE_LIMIT_AUTH_MAX,
     RATE_LIMIT_WINDOW_SECONDS=RATE_LIMIT_WINDOW_SECONDS,
     create_session=create_session,
+    generate_otp_code=generate_otp_code,
     get_user_payload=get_user_payload,
+    hash_otp_code=hash_otp_code,
     hash_password=hash_password,
+    log_audit=log_audit,
+    normalize_phone_number=normalize_phone_number,
+    OTP_MAX_ATTEMPTS=OTP_MAX_ATTEMPTS,
+    OTP_PROVIDER=OTP_PROVIDER,
+    OTP_REQUIRE_VERIFICATION=OTP_REQUIRE_VERIFICATION,
+    OTP_TTL_MINUTES=OTP_TTL_MINUTES,
     rate_limited=rate_limited,
     valid_email=valid_email,
+    valid_phone_number=valid_phone_number,
     valid_password=valid_password,
+    verify_otp_code=verify_otp_code,
     verify_password=verify_password,
   )
 
@@ -549,6 +605,13 @@ def users_dependencies():
   )
 
 
+def access_requests_dependencies():
+  return mutable_dependencies(
+    create_notification=create_notification,
+    log_audit=log_audit,
+  )
+
+
 def apply_xp(conn, event_row, participants):
   return runtime_services.apply_xp(conn, execute, utc_now_iso, event_row, participants)
 
@@ -586,7 +649,10 @@ class Handler(BaseHTTPRequestHandler):
       if admin_api.handle_get(self, conn, path, admin_dependencies()):
         return
 
-      if notifications_api.handle_get(self, conn, path, notifications_dependencies()):
+      if access_requests_api.handle_get(self, conn, path, query, access_requests_dependencies()):
+        return
+
+      if notifications_api.handle_get(self, conn, path, query, notifications_dependencies()):
         return
 
       if certificates_api.handle_get(self, conn, path, certificates_dependencies()):
@@ -629,6 +695,9 @@ class Handler(BaseHTTPRequestHandler):
         return
 
       if collaboration_api.handle_post(self, conn, path, body, collaboration_dependencies()):
+        return
+
+      if access_requests_api.handle_post(self, conn, path, body, access_requests_dependencies()):
         return
 
       if admin_api.handle_post(self, conn, path, body, admin_dependencies()):

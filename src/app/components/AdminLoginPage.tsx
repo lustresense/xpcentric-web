@@ -87,7 +87,7 @@ export function AdminLoginPage({ onNavigate, onLogin }: AdminLoginPageProps) {
                     <AlertDescription className="text-sm">
                       <strong>Akses Admin (Demo):</strong><br/>
                       Username: <code>admin</code><br/>
-                      Password: <code>admin</code>
+                      Password: lihat <code>database/runtime/dev_credentials.txt</code> atau set <code>SIMRP_ADMIN_LOGIN_PASSWORD</code>
                     </AlertDescription>
                   </Alert>
                 )}

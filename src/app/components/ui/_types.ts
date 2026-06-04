@@ -1,5 +1,6 @@
 export interface FloatingNavbarProps {
   user: any;
+  authToken?: string | null;
   activePage: string;
   onLogout: () => void;
   onNavigate: (page: any) => void;

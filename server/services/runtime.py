@@ -62,6 +62,23 @@ def verify_password(password, encoded, iterations):
   return hmac.compare_digest(got, expected)
 
 
+def generate_otp_code():
+  return f"{secrets.randbelow(1000000):06d}"
+
+
+def hash_otp_code(code, secret):
+  return hmac.new(
+    str(secret or "").encode("utf-8"),
+    str(code or "").encode("utf-8"),
+    "sha256",
+  ).hexdigest()
+
+
+def verify_otp_code(code, encoded, secret):
+  expected = hash_otp_code(code, secret)
+  return hmac.compare_digest(expected, str(encoded or ""))
+
+
 def create_session(conn, execute, utc_now_iso, session_ttl_hours, user_id):
   token = secrets.token_urlsafe(48)
   now = utc_now_iso()

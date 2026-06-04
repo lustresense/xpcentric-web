@@ -162,6 +162,10 @@ def handle_get(handler, conn, path, query, deps):
         return _json(deps, handler, 401, {"error": "Unauthorized"})
     status_filter = query.get("status", [None])[0] if query else None
     user_filter = query.get("userId", [None])[0] if query else None
+    try:
+        limit, offset = deps["parse_pagination"](query, default_limit=100, max_limit=500)
+    except ValueError as exc:
+        return _json(deps, handler, 400, {"error": str(exc)})
     if status_filter and status_filter not in ("pending", "under_review", "verified", "rejected"):
         return _json(deps, handler, 400, {"error": "Status laporan tidak valid"})
     sql = "SELECT * FROM event_reports WHERE 1=1"
@@ -212,8 +216,9 @@ def handle_get(handler, conn, path, query, deps):
         pass
     else:
         sql += " AND 1=0"
-    sql += " ORDER BY created_at DESC"
-    rows = conn.execute(sql, tuple(params)).fetchall()
+    total = conn.execute(f"SELECT COUNT(*) AS c FROM ({sql}) AS filtered_reports", tuple(params)).fetchone()["c"]
+    sql += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
+    rows = conn.execute(sql, tuple([*params, limit, offset])).fetchall()
     out = []
     for r in rows:
         out.append(
@@ -230,7 +235,7 @@ def handle_get(handler, conn, path, query, deps):
                 "createdAt": r["created_at"],
             }
         )
-    return _json(deps, handler, 200, {"reports": out})
+    return _json(deps, handler, 200, {"reports": out, "pagination": deps["pagination_payload"](total, limit, offset)})
 
 
 def handle_post(handler, conn, path, body, deps):

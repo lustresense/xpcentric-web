@@ -14,6 +14,8 @@ def handle_get(handler, conn, path, query, deps):
     user_from_token = deps["user_from_token"]
     get_user_payload = deps["get_user_payload"]
     bounded_text = deps["bounded_text"]
+    parse_pagination = deps["parse_pagination"]
+    pagination_payload = deps["pagination_payload"]
 
     # GET /health
     if path == f"{API_PREFIX}/health":
@@ -53,6 +55,15 @@ def handle_get(handler, conn, path, query, deps):
         if not actor:
             write_json(handler, 401, {"error": "Unauthorized"})
             return True
+        try:
+            limit, offset = parse_pagination(query, default_limit=100, max_limit=500)
+        except ValueError as exc:
+            write_json(handler, 400, {"error": str(exc)})
+            return True
+        total = conn.execute(
+            "SELECT COUNT(*) AS c FROM event_participation WHERE user_id = ?",
+            (actor["id"],),
+        ).fetchone()["c"]
         rows = conn.execute(
             """
             SELECT
@@ -71,8 +82,9 @@ def handle_get(handler, conn, path, query, deps):
             LEFT JOIN event_reports er ON er.event_id = ep.event_id AND er.user_id = ep.user_id
             WHERE ep.user_id = ?
             ORDER BY e.event_date DESC, ep.created_at DESC
+            LIMIT ? OFFSET ?
             """,
-            (actor["id"],),
+            (actor["id"], limit, offset),
         ).fetchall()
         participations = [
             {
@@ -90,7 +102,7 @@ def handle_get(handler, conn, path, query, deps):
             }
             for row in rows
         ]
-        write_json(handler, 200, {"participations": participations})
+        write_json(handler, 200, {"participations": participations, "pagination": pagination_payload(total, limit, offset)})
         return True
 
     # GET /users — daftar semua pengguna (requires auth)
@@ -102,6 +114,12 @@ def handle_get(handler, conn, path, query, deps):
         role_code = str(actor["role_code"])
         role_filter = query.get("role", [None])[0]
         kampung_filter = query.get("kampungId", [None])[0]
+        try:
+            search_filter = bounded_text(query.get("q", [""])[0], 120)
+            limit, offset = parse_pagination(query, default_limit=100, max_limit=500)
+        except ValueError as exc:
+            write_json(handler, 400, {"error": str(exc)})
+            return True
         sql = """
           SELECT users.*, kelurahan.name AS kel_name, kecamatan.name AS kec_name
           FROM users
@@ -143,8 +161,13 @@ def handle_get(handler, conn, path, query, deps):
                 return True
             sql += " AND users.kelurahan_id = ?"
             params.append(kampung_id)
-        sql += " ORDER BY users.name ASC"
-        rows = conn.execute(sql, tuple(params)).fetchall()
+        if search_filter and role_code == "admin":
+            sql += " AND (users.name LIKE ? OR users.email LIKE ?)"
+            like = f"%{search_filter}%"
+            params.extend([like, like])
+        total = conn.execute(f"SELECT COUNT(*) AS c FROM ({sql}) AS filtered_users", tuple(params)).fetchone()["c"]
+        sql += " ORDER BY users.name ASC LIMIT ? OFFSET ?"
+        rows = conn.execute(sql, tuple([*params, limit, offset])).fetchall()
         users = []
         for r in rows:
             users.append(
@@ -163,7 +186,7 @@ def handle_get(handler, conn, path, query, deps):
                     "points": max(0, int(r["points"])),
                 }
             )
-        write_json(handler, 200, {"users": users})
+        write_json(handler, 200, {"users": users, "pagination": pagination_payload(total, limit, offset)})
         return True
 
     # GET /recommendations — stub, off-system

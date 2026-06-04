@@ -14,8 +14,23 @@ function clamp(value: number, min: number, max: number) {
 export function HeroSection({ onExplore, totalKelurahan, totalKodepos }: HeroSectionProps) {
   const sectionRef = useRef<HTMLElement | null>(null);
   const [progress, setProgress] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    const syncViewport = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    syncViewport();
+    window.addEventListener("resize", syncViewport);
+    return () => window.removeEventListener("resize", syncViewport);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) {
+      setProgress(0);
+      return;
+    }
+
     let raf = 0;
     const onScroll = () => {
       cancelAnimationFrame(raf);
@@ -40,17 +55,17 @@ export function HeroSection({ onExplore, totalKelurahan, totalKodepos }: HeroSec
       window.removeEventListener("resize", onScroll);
       cancelAnimationFrame(raf);
     };
-  }, []);
+  }, [isMobile]);
 
-  const inset = progress * 6.5;
-  const radius = progress * 34;
-  const shadow = progress * 0.2;
+  const inset = isMobile ? 0 : progress * 6.5;
+  const radius = isMobile ? 0 : progress * 34;
+  const shadow = isMobile ? 0 : progress * 0.2;
 
   return (
-    <section ref={sectionRef} className="relative h-[165vh]">
-      <div className="sticky top-0 h-screen overflow-hidden">
+    <section ref={sectionRef} className={isMobile ? "relative min-h-screen" : "relative h-[165vh]"}>
+      <div className={isMobile ? "min-h-screen overflow-hidden" : "sticky top-0 h-screen overflow-hidden"}>
         <div
-          className="h-full w-full transition-[clip-path,box-shadow] duration-100"
+          className="min-h-screen w-full transition-[clip-path,box-shadow] duration-100 md:h-full"
           style={{
             clipPath: `inset(${inset}% ${inset}% ${inset}% ${inset}% round ${radius}px)`,
             boxShadow: `0 28px 55px rgba(7, 27, 19, ${shadow})`,
@@ -59,19 +74,19 @@ export function HeroSection({ onExplore, totalKelurahan, totalKodepos }: HeroSec
           }}
         >
           <div
-            className="h-full w-full"
+            className="min-h-screen w-full md:h-full"
             style={{
               backgroundImage:
                 "linear-gradient(90deg, rgba(4,35,23,0.22) 1px, transparent 1px), linear-gradient(rgba(4,35,23,0.22) 1px, transparent 1px)",
               backgroundSize: "56px 56px",
             }}
           >
-            <div className="mx-auto flex h-full w-full max-w-6xl items-center px-6 md:px-10">
+            <div className="mx-auto flex min-h-screen w-full max-w-6xl items-center px-5 py-28 md:h-full md:px-10 md:py-0">
               <div className="max-w-4xl text-white">
-                <h1 className="text-5xl font-semibold leading-[1.06] tracking-tight text-white md:text-7xl">
+                <h1 className="text-4xl font-semibold leading-[1.08] tracking-normal text-white md:text-7xl">
                   Mewujudkan Kampung yang Seimbang dan Mandiri
                 </h1>
-                <p className="mt-6 max-w-3xl text-lg leading-relaxed text-white/92 md:text-2xl">
+                <p className="mt-6 max-w-3xl text-base leading-relaxed text-white/92 md:text-2xl">
                   Program kampung berbasis partisipasi warga dengan empat pilar utama: Lingkungan, Ekonomi, Sosial Budaya,
                   dan Kemasyarakatan.
                 </p>

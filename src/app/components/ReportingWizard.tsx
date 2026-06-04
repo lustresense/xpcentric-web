@@ -83,7 +83,7 @@ export function ReportingWizard({ authToken, userId, events, onClose }: Reportin
       const reportData = {
         userId,
         eventId: selectedEventId,
-        photoUrl: photo, // In production, upload to cloud storage first
+        photoUrl: photo,
         participants: parseInt(participants),
         outcomeTags,
         createdAt: new Date().toISOString()
@@ -119,6 +119,7 @@ export function ReportingWizard({ authToken, userId, events, onClose }: Reportin
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-gray-600">
             <p>Belum ada kegiatan selesai yang bisa dilaporkan.</p>
+            <p>Laporan bisa dibuat setelah kamu terdaftar, hadir, dan kegiatan sudah ditandai selesai.</p>
             <Button className="w-full" onClick={onClose}>
               Kembali
             </Button>
@@ -137,7 +138,7 @@ export function ReportingWizard({ authToken, userId, events, onClose }: Reportin
               Lapor Kegiatan
             </CardTitle>
             <div className="text-sm text-gray-500 mt-1">
-              Step {step} dari 2
+              Langkah {step} dari 2
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -155,7 +156,7 @@ export function ReportingWizard({ authToken, userId, events, onClose }: Reportin
           {step === 1 && (
             <>
               <div>
-                <h3 className="font-bold mb-3 text-lg text-black">📸 Bukti Kegiatan</h3>
+                <h3 className="font-bold mb-3 text-lg text-black">Bukti Kegiatan</h3>
                 
                 <div className="space-y-4">
                   <div>
@@ -208,7 +209,7 @@ export function ReportingWizard({ authToken, userId, events, onClose }: Reportin
                             Pilih foto kegiatan
                           </div>
                           <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                            GPS Terkunci Otomatis 🔒
+                            Foto tersimpan sebagai bukti laporan
                           </div>
                         </button>
                       )}
@@ -245,7 +246,7 @@ export function ReportingWizard({ authToken, userId, events, onClose }: Reportin
                 disabled={!photo || !participants || !selectedEventId}
                 className="w-full bg-green-700 text-white hover:bg-green-800 font-bold h-12 rounded-xl"
               >
-                Lanjut ke Step 2
+                Lanjut ke Langkah 2
               </Button>
             </>
           )}
@@ -254,17 +255,17 @@ export function ReportingWizard({ authToken, userId, events, onClose }: Reportin
           {step === 2 && (
             <>
               <div>
-                <h3 className="font-bold mb-3 text-lg text-black">📊 Dampak Kegiatan</h3>
+                <h3 className="font-bold mb-3 text-lg text-black">Dampak Kegiatan</h3>
                 <p className="text-sm text-gray-600 mb-4">
                   Pilih dampak nyata yang dihasilkan dari kegiatan ini.
                 </p>
 
                 <div className="space-y-3">
                   {[
-                    { id: 'resolved', label: '✅ Masalah Teratasi', description: 'Solusi langsung untuk masalah warga.' },
-                    { id: 'followup', label: '⚠️ Butuh Tindak Lanjut', description: 'Perlu eskalasi ke Dinas terkait.' },
-                    { id: 'economic', label: '💰 Transaksi Ekonomi', description: 'Ada perputaran uang / UMKM.' },
-                    { id: 'participation', label: '📈 Guyub Rukun', description: 'Meningkatkan kohesi sosial warga.' }
+                    { id: 'resolved', label: 'Masalah Teratasi', description: 'Ada hasil langsung untuk kebutuhan warga.' },
+                    { id: 'followup', label: 'Butuh Tindak Lanjut', description: 'Perlu diteruskan ke pengurus wilayah atau dinas terkait.' },
+                    { id: 'economic', label: 'Dampak Ekonomi', description: 'Ada dukungan untuk UMKM atau kegiatan ekonomi warga.' },
+                    { id: 'participation', label: 'Warga Lebih Terlibat', description: 'Partisipasi dan kerja bersama warga meningkat.' }
                   ].map((tag) => (
                     <div
                       key={tag.id}
@@ -307,7 +308,7 @@ export function ReportingWizard({ authToken, userId, events, onClose }: Reportin
                   {loading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Proses...
+                      Mengirim...
                     </>
                   ) : (
                     'Kirim Laporan'

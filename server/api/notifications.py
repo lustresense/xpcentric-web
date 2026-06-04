@@ -18,7 +18,7 @@ def _actor(conn, handler, deps):
   return deps["user_from_token"](conn, _auth_header(handler))
 
 
-def handle_get(handler, conn, path, deps):
+def handle_get(handler, conn, path, query, deps):
   api_prefix = deps["API_PREFIX"]
 
   if path == f"{api_prefix}/notifications/count":
@@ -35,15 +35,23 @@ def handle_get(handler, conn, path, deps):
     actor = _actor(conn, handler, deps)
     if not actor:
       return _json(deps, handler, 401, {"error": "Unauthorized"})
+    try:
+      limit, offset = deps["parse_pagination"](query, default_limit=100, max_limit=500)
+    except ValueError as exc:
+      return _json(deps, handler, 400, {"error": str(exc)})
+    total = conn.execute(
+      "SELECT COUNT(*) AS c FROM notifications WHERE user_id = ?",
+      (actor["id"],),
+    ).fetchone()["c"]
     rows = conn.execute(
       """
       SELECT id, type, title, message, is_read, entity_type, entity_id, created_at
       FROM notifications
       WHERE user_id = ?
       ORDER BY created_at DESC
-      LIMIT 100
+      LIMIT ? OFFSET ?
       """,
-      (actor["id"],),
+      (actor["id"], limit, offset),
     ).fetchall()
     notifications = [
       {
@@ -58,7 +66,7 @@ def handle_get(handler, conn, path, deps):
       }
       for row in rows
     ]
-    return _json(deps, handler, 200, {"notifications": notifications})
+    return _json(deps, handler, 200, {"notifications": notifications, "pagination": deps["pagination_payload"](total, limit, offset)})
 
   return False
 

@@ -63,6 +63,8 @@ TABLE_SCHEMAS = [
     moderator_tier INTEGER,
     tier2_badge TEXT,
     email_verified INTEGER NOT NULL DEFAULT 1,
+    phone_number TEXT,
+    phone_verified INTEGER NOT NULL DEFAULT 0,
     kelurahan_id INTEGER,
     kecamatan_id INTEGER,
     points INTEGER NOT NULL DEFAULT 0,
@@ -72,6 +74,56 @@ TABLE_SCHEMAS = [
     FOREIGN KEY (kelurahan_id) REFERENCES kelurahan(id),
     FOREIGN KEY (kecamatan_id) REFERENCES kecamatan(id)
   )
+  """,
+  """
+  CREATE TABLE IF NOT EXISTS otp_challenges (
+    id TEXT PRIMARY KEY,
+    phone_number TEXT NOT NULL,
+    purpose TEXT NOT NULL CHECK(purpose IN ('signup','login','account_recovery')),
+    otp_hash TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    consumed_at TEXT,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    max_attempts INTEGER NOT NULL DEFAULT 5,
+    created_at TEXT NOT NULL
+  )
+  """,
+  """
+  CREATE TABLE IF NOT EXISTS access_requests (
+    id TEXT PRIMARY KEY,
+    requester_user_id TEXT NOT NULL,
+    requester_email TEXT NOT NULL,
+    requester_name TEXT NOT NULL,
+    current_role TEXT NOT NULL,
+    requested_role TEXT NOT NULL CHECK(requested_role IN ('ksh','moderator_t1','moderator_t2')),
+    requested_scope_type TEXT NOT NULL CHECK(requested_scope_type IN ('none','kelurahan','kecamatan')),
+    requested_kelurahan_id INTEGER,
+    requested_kecamatan_id INTEGER,
+    position_or_title TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('pending','approved','rejected')),
+    reviewed_by_user_id TEXT,
+    review_note TEXT,
+    created_at TEXT NOT NULL,
+    reviewed_at TEXT,
+    FOREIGN KEY (requester_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (reviewed_by_user_id) REFERENCES users(id),
+    FOREIGN KEY (requested_kelurahan_id) REFERENCES kelurahan(id),
+    FOREIGN KEY (requested_kecamatan_id) REFERENCES kecamatan(id)
+  )
+  """,
+  """
+  CREATE INDEX IF NOT EXISTS idx_access_requests_requester_status
+  ON access_requests(requester_user_id, status)
+  """,
+  """
+  CREATE INDEX IF NOT EXISTS idx_access_requests_status_created
+  ON access_requests(status, created_at)
+  """,
+  """
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_access_requests_pending_role
+  ON access_requests(requester_user_id, requested_role)
+  WHERE status = 'pending'
   """,
   """
   CREATE TABLE IF NOT EXISTS events (

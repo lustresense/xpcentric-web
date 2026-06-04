@@ -10,8 +10,16 @@ This directory contains the public project documentation that should remain in t
 - [Contributor Setup](SETUP.md)
 - [Demo Accounts](DEMO_ACCOUNTS.md)
 - [Production Readiness](PRODUCTION_READINESS.md)
+- [Production Gap Roadmap](PRODUCTION_GAP_ROADMAP.md)
+- [Maintainer Guide](MAINTAINER_GUIDE.md)
+- [Operations Runbook](OPERATIONS_RUNBOOK.md)
+- [Account Recovery Runbook](ACCOUNT_RECOVERY_RUNBOOK.md)
+- [Privacy and Data Governance](PRIVACY_AND_DATA_GOVERNANCE.md)
+- [UX Pilot Audit](UX_PILOT_AUDIT.md)
 
 The root [README](../README.md) is the primary overview and can be used as context for academic reporting, demos, or onboarding.
+
+For the role-approval demo, see "Demo Access Portal Flow" in [Demo Accounts](DEMO_ACCOUNTS.md) and the access request endpoints in [API Reference](API_REFERENCE.md).
 
 ## Documentation Rules
 

@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/ca
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
 import { Award, MapPin, Calendar, TrendingUp, CheckCircle, Clock, XCircle, LogOut } from 'lucide-react';
+import { RankCard } from '@/app/components/RankCard';
 
 interface UserProfileProps {
   user: any;
@@ -17,6 +18,8 @@ export function UserProfile({ user, reports = [], onLogout, moderatorTier }: Use
   const rejectedReports = reports.filter(r => r.status === 'rejected').length;
 
   const isMod = user?.role === 'admin' || user?.role === 'moderator';
+  const rankRole = user?.role === 'admin' ? 'admin' : user?.role === 'moderator' ? 'moderator' : 'user';
+  const safeUserPoints = Math.max(0, Number(user?.points || 0));
 
   // Theme variables based on role
   const theme = {
@@ -44,7 +47,7 @@ export function UserProfile({ user, reports = [], onLogout, moderatorTier }: Use
             {!isMod && (
               <div className="flex gap-4 mb-4">
                 <div className="text-center">
-                  <div className="text-3xl font-bold">{user.points || 0}</div>
+                  <div className="text-3xl font-bold">{safeUserPoints}</div>
                   <div className="text-sm text-green-100">Total Poin</div>
                 </div>
                 <div className="w-px bg-white/30" />
@@ -67,6 +70,12 @@ export function UserProfile({ user, reports = [], onLogout, moderatorTier }: Use
           </div>
         </CardContent>
       </Card>
+
+      <RankCard
+        role={rankRole}
+        points={safeUserPoints}
+        title={isMod ? 'Rank Akses Sistem' : 'Rank Relawan'}
+      />
 
       {/* Location Info */}
       <Card>
@@ -203,6 +212,11 @@ export function UserProfile({ user, reports = [], onLogout, moderatorTier }: Use
                             year: 'numeric'
                           })}
                         </div>
+                        {report.status === 'rejected' && report.rejectReason && (
+                          <div className="mt-1 text-xs text-red-600">
+                            Alasan: {report.rejectReason}
+                          </div>
+                        )}
                       </div>
                       <Badge
                         className={

@@ -1,0 +1,25 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      SIMRP_HOST: 0.0.0.0
+      SIMRP_PORT: 8000
+      SIMRP_DB_PATH: /data/simrp/database.db
+    volumes:
+      - simrp-data:/data/simrp
+    expose:
+      - "8000"
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+
+volumes:
+  simrp-data:

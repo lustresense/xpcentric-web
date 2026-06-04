@@ -195,6 +195,11 @@ def handle_get(handler, conn, path, query, deps):
         return _json(deps, handler, 401, {"error": "Unauthorized"})
 
     status_filter = query.get("status", [None])[0] if query else None
+    try:
+        search_filter = deps["bounded_text"](query.get("q", [""])[0], 120)
+        limit, offset = deps["parse_pagination"](query, default_limit=100, max_limit=500)
+    except ValueError as exc:
+        return _json(deps, handler, 400, {"error": str(exc)})
     sql = """
           SELECT events.*, kelurahan.name AS kelurahan, kecamatan.name AS kecamatan
           FROM events
@@ -206,6 +211,10 @@ def handle_get(handler, conn, path, query, deps):
     if status_filter:
         sql += " AND events.status = ?"
         params.append(status_filter)
+    if search_filter:
+        sql += " AND (events.title LIKE ? OR events.description LIKE ? OR events.location LIKE ?)"
+        like = f"%{search_filter}%"
+        params.extend([like, like, like])
     if actor["role_code"] in ("user", "ksh"):
         sql += " AND events.status IN ('published','completed')"
         sql += " AND ((events.scope_type = 'kelurahan' AND events.kelurahan_id = ?) OR (events.scope_type = 'kecamatan' AND events.kecamatan_id = ?))"
@@ -232,8 +241,9 @@ def handle_get(handler, conn, path, query, deps):
             params.append(actor["kecamatan_id"])
         else:
             sql += " AND 1=0"
-    sql += " ORDER BY events.event_date ASC"
-    rows = conn.execute(sql, tuple(params)).fetchall()
+    total = conn.execute(f"SELECT COUNT(*) AS c FROM ({sql}) AS filtered_events", tuple(params)).fetchone()["c"]
+    sql += " ORDER BY events.event_date ASC LIMIT ? OFFSET ?"
+    rows = conn.execute(sql, tuple([*params, limit, offset])).fetchall()
     out = []
     for r in rows:
         participants = conn.execute("SELECT user_id FROM event_participation WHERE event_id = ?", (r["id"],)).fetchall()
@@ -257,7 +267,7 @@ def handle_get(handler, conn, path, query, deps):
                 "participants": [p["user_id"] for p in participants],
             }
         )
-    return _json(deps, handler, 200, {"events": out})
+    return _json(deps, handler, 200, {"events": out, "pagination": deps["pagination_payload"](total, limit, offset)})
 
 
 def handle_post(handler, conn, path, body, deps):

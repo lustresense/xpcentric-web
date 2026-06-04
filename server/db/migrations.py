@@ -5,6 +5,77 @@ def migrate_schema(conn, execute):
   user_cols = {row["name"] for row in conn.execute("PRAGMA table_info(users)").fetchall()}
   if "tier2_badge" not in user_cols:
     execute(conn, "ALTER TABLE users ADD COLUMN tier2_badge TEXT")
+  if "phone_number" not in user_cols:
+    execute(conn, "ALTER TABLE users ADD COLUMN phone_number TEXT")
+  if "phone_verified" not in user_cols:
+    execute(conn, "ALTER TABLE users ADD COLUMN phone_verified INTEGER NOT NULL DEFAULT 0")
+
+  execute(
+    conn,
+    """
+    CREATE TABLE IF NOT EXISTS otp_challenges (
+      id TEXT PRIMARY KEY,
+      phone_number TEXT NOT NULL,
+      purpose TEXT NOT NULL CHECK(purpose IN ('signup','login','account_recovery')),
+      otp_hash TEXT NOT NULL,
+      expires_at TEXT NOT NULL,
+      consumed_at TEXT,
+      attempts INTEGER NOT NULL DEFAULT 0,
+      max_attempts INTEGER NOT NULL DEFAULT 5,
+      created_at TEXT NOT NULL
+    )
+    """,
+  )
+
+  execute(
+    conn,
+    """
+    CREATE TABLE IF NOT EXISTS access_requests (
+      id TEXT PRIMARY KEY,
+      requester_user_id TEXT NOT NULL,
+      requester_email TEXT NOT NULL,
+      requester_name TEXT NOT NULL,
+      current_role TEXT NOT NULL,
+      requested_role TEXT NOT NULL CHECK(requested_role IN ('ksh','moderator_t1','moderator_t2')),
+      requested_scope_type TEXT NOT NULL CHECK(requested_scope_type IN ('none','kelurahan','kecamatan')),
+      requested_kelurahan_id INTEGER,
+      requested_kecamatan_id INTEGER,
+      position_or_title TEXT NOT NULL,
+      reason TEXT NOT NULL,
+      status TEXT NOT NULL CHECK(status IN ('pending','approved','rejected')),
+      reviewed_by_user_id TEXT,
+      review_note TEXT,
+      created_at TEXT NOT NULL,
+      reviewed_at TEXT,
+      FOREIGN KEY (requester_user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (reviewed_by_user_id) REFERENCES users(id),
+      FOREIGN KEY (requested_kelurahan_id) REFERENCES kelurahan(id),
+      FOREIGN KEY (requested_kecamatan_id) REFERENCES kecamatan(id)
+    )
+    """,
+  )
+  execute(
+    conn,
+    """
+    CREATE INDEX IF NOT EXISTS idx_access_requests_requester_status
+    ON access_requests(requester_user_id, status)
+    """,
+  )
+  execute(
+    conn,
+    """
+    CREATE INDEX IF NOT EXISTS idx_access_requests_status_created
+    ON access_requests(status, created_at)
+    """,
+  )
+  execute(
+    conn,
+    """
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_access_requests_pending_role
+    ON access_requests(requester_user_id, requested_role)
+    WHERE status = 'pending'
+    """,
+  )
 
   collab_cols = {row["name"] for row in conn.execute("PRAGMA table_info(collaboration_requests)").fetchall()}
   if "contribution_scope" not in collab_cols:

@@ -7,12 +7,14 @@ import { AdminDashboard } from '@/app/components/AdminDashboard';
 import { ModeratorDashboard } from '@/app/components/ModeratorDashboard';
 import { AdminLoginPage } from '@/app/components/AdminLoginPage';
 import { CollaborationPage } from '@/app/components/CollaborationPage';
+import { AccessRequestPage } from '@/app/components/AccessRequestPage';
 import { AboutPage } from '@/app/components/AboutPage';
 import { FaqPage } from '@/app/components/FaqPage';
+import { Button } from '@/app/components/ui/button';
 import { Toaster } from 'sonner';
-import { setOnUnauthorized, apiGet } from '@/lib/api';
+import { API_BASE, setOnUnauthorized, apiGet } from '@/lib/api';
 
-type Page = 'landing' | 'login' | 'register' | 'collaboration' | 'about' | 'faq' | 'admin-login' | 'dashboard';
+type Page = 'landing' | 'login' | 'register' | 'collaboration' | 'access' | 'about' | 'faq' | 'admin-login' | 'dashboard' | 'not-found';
 
 interface User {
   id?: string;
@@ -28,6 +30,8 @@ interface User {
   kelurahan?: string;
   kodepos?: string;
   rw?: string;
+  roleCode?: string;
+  isKsh?: boolean;
 }
 
 export default function App() {
@@ -107,6 +111,10 @@ export default function App() {
         setCurrentPage('collaboration');
         return;
       }
+      if (path === '/access') {
+        setCurrentPage('access');
+        return;
+      }
       if (path === '/about') {
         setCurrentPage('about');
         return;
@@ -123,7 +131,11 @@ export default function App() {
         }
         return;
       }
-      setCurrentPage('landing');
+      if (path === '/' || path === '') {
+        setCurrentPage('landing');
+        return;
+      }
+      setCurrentPage('not-found');
     };
 
     syncRoute();
@@ -158,14 +170,11 @@ export default function App() {
     // Attempt server-side session invalidation (fire-and-forget)
     const token = authToken || localStorage.getItem('simrp_auth_token');
     if (token) {
-      fetch(
-        `${import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/make-server-32aa5c5c'}/auth/logout`,
-        {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: '{}',
-        },
-      ).catch(() => { /* ignore network errors during logout */ });
+      fetch(`${API_BASE}/auth/logout`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: '{}',
+      }).catch(() => { /* ignore network errors during logout */ });
     }
     setCurrentUser(null);
     setAuthToken(null);
@@ -193,10 +202,14 @@ export default function App() {
       window.history.pushState({}, '', '/register');
     } else if (page === 'collaboration') {
       window.history.pushState({}, '', '/kolaborasi');
+    } else if (page === 'access') {
+      window.history.pushState({}, '', '/access');
     } else if (page === 'about') {
       window.history.pushState({}, '', '/about');
     } else if (page === 'faq') {
       window.history.pushState({}, '', '/faq');
+    } else if (page === 'dashboard') {
+      window.history.pushState({}, '', '/app');
     } else if (page === 'landing') {
       window.history.pushState({}, '', '/');
     }
@@ -262,12 +275,30 @@ export default function App() {
         withTransition(<CollaborationPage onNavigate={navigateTo} />)
       )}
 
+      {currentPage === 'access' && (
+        withTransition(<AccessRequestPage user={currentUser} authToken={authToken} onNavigate={navigateTo} />)
+      )}
+
       {currentPage === 'about' && (
         withTransition(<AboutPage onNavigate={navigateTo} />)
       )}
 
       {currentPage === 'faq' && (
         withTransition(<FaqPage onNavigate={navigateTo} />)
+      )}
+
+      {currentPage === 'not-found' && (
+        withTransition(
+          <div className="size-full flex items-center justify-center bg-white px-6">
+            <div className="max-w-md text-center">
+              <h1 className="text-3xl font-bold text-black">404</h1>
+              <p className="mt-2 text-gray-600">Halaman tidak ditemukan.</p>
+              <Button className="mt-6 bg-black text-white hover:bg-gray-900" onClick={() => navigateTo('landing')}>
+                Kembali ke Beranda
+              </Button>
+            </div>
+          </div>,
+        )
       )}
       
       {currentPage === 'dashboard' && currentUser && (

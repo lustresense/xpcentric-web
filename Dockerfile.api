@@ -1,0 +1,15 @@
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+RUN mkdir -p /data/simrp
+
+COPY server/ /app/server/
+COPY src/data/ /app/src/data/
+
+EXPOSE 8000
+
+CMD ["python", "server/main.py"]

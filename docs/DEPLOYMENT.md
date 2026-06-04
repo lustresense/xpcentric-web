@@ -32,6 +32,26 @@ SIMRP_TRUST_PROXY_HEADERS=false
 
 If the backend is behind a trusted reverse proxy that correctly sets forwarding headers, `SIMRP_TRUST_PROXY_HEADERS=true` can be enabled.
 
+Example production-like files are available:
+
+```text
+deploy/nginx/simrp-api.conf.example
+deploy/systemd/simrp-api.service.example
+```
+
+These files are references only. Do not deploy them without adjusting domain, TLS certificate paths, service user, database path, log policy, and secret handling.
+
+## Demo Access Portal
+
+For demo or KP scenarios, `/access` is available after user login as Portal Akses Petugas. It lets a relawan submit a KSH/moderator access request. Admin approval is still required before the role becomes active.
+
+Deployment notes for this flow:
+
+- Register remains public relawan registration.
+- OTP remains optional/dev-mode unless a real OTP provider is configured.
+- SQLite remains the active database for prototype/KP/demo.
+- Refresh or login ulang after admin approval so the frontend reloads `/auth/me`.
+
 ## Build Frontend
 
 ```bash
@@ -79,3 +99,15 @@ scripts/backup_database.bat
 ```
 
 Do not deploy with local runtime credentials or checked-in database files.
+
+## Production Gaps
+
+Before public city-scale usage, read:
+
+```text
+docs/PRODUCTION_GAP_ROADMAP.md
+```
+
+The roadmap tracks OTP, database migration, monitoring, official GoBis integration, legal digital signatures, and final UU PDP compliance.
+
+Docker/GHCR packaging and tunnel fallback are planned as Batch 5B. They are not implemented in this guide yet. Do not treat the example reverse proxy/systemd files as the final city-wide deployment package.

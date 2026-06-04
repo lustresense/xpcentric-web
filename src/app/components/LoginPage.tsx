@@ -132,7 +132,7 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
             style={{ color: theme.onPrimary }}
           >
             {mode === 'relawan' ? (
-              <>Bersama<br/>Mengawal<br/>Demokrasi</>
+              <>Bersama<br/>Membangun<br/>Kampung</>
             ) : (
               <>Koordinasi<br/>Pengawasan<br/>Transparan</>
             )}
@@ -142,8 +142,8 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
             style={{ color: `${theme.onPrimary}CC` }}
           >
             {mode === 'relawan' 
-              ? 'Platform pengawasan dan koordinasi mandiri untuk masa depan bangsa yang lebih transparan.'
-              : 'Sistem manajemen dan verifikasi kegiatan relawan untuk pengawasan yang efektif.'}
+              ? 'Daftar kegiatan kampung, kirim laporan, dapatkan sertifikat, dan tukarkan XP menjadi voucher transportasi.'
+              : 'Sistem manajemen dan verifikasi kegiatan warga untuk ASN dan moderator wilayah.'}
           </p>
         </div>
 
@@ -154,7 +154,7 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
             className="font-medium text-sm"
             style={{ color: `${theme.onPrimary}CC` }}
           >
-            Surabaya Platform v2.4
+            SIMRP Surabaya v2.4
           </span>
         </div>
 
@@ -204,7 +204,7 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
               className="font-medium"
               style={{ color: theme.onSurfaceVariant }}
             >
-              Masukkan kredensial Anda untuk melanjutkan.
+              Masukkan email dan kata sandi untuk melanjutkan.
             </p>
           </div>
 
@@ -227,7 +227,7 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
                 className="block text-xs font-bold uppercase tracking-wider transition-colors"
                 style={{ color: theme.onSurfaceVariant }}
               >
-                Email atau Username
+                Email
               </label>
               <div className="relative">
                 <input
@@ -259,14 +259,9 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
                 >
                   Kata Sandi
                 </label>
-                <button 
-                  type="button"
-                  className="text-xs font-bold transition-colors tracking-tight"
-                  style={{ color: theme.primary }}
-                  onClick={() => {}}
-                >
-                  Lupa Sandi?
-                </button>
+                <span className="text-xs font-medium" style={{ color: theme.primary }}>
+                  Hubungi admin wilayah jika lupa sandi
+                </span>
               </div>
               <div className="relative">
                 <input
@@ -279,7 +274,7 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
                   onBlur={(e) => e.target.style.borderColor = theme.outlineVariant}
                   id="password"
                   name="password"
-                  placeholder="••••••••"
+                  placeholder="Masukkan kata sandi"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -318,7 +313,7 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
                     </code>
                   </p>
                   <p>
-                    Pass: <code className="px-1 rounded" style={{ backgroundColor: `${theme.primary}1A` }}>password123</code>
+                    Pass: <code className="px-1 rounded" style={{ backgroundColor: `${theme.primary}1A` }}>database/runtime/dev_credentials.txt</code>
                   </p>
                 </div>
               </div>
@@ -385,7 +380,7 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
               className="text-[10px] leading-relaxed"
               style={{ color: theme.outline }}
             >
-              Akses ini terbatas hanya untuk {mode === 'relawan' ? 'relawan resmi yang terverifikasi' : 'moderator dan admin resmi'}. 
+              Akses ini terbatas hanya untuk {mode === 'relawan' ? 'relawan yang terdaftar' : 'moderator dan admin resmi'}.
               Penggunaan tidak sah akan diproses sesuai hukum yang berlaku.
             </p>
           </div>

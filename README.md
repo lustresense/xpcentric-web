@@ -20,6 +20,10 @@ Status teknis per 2026-05-30:
 - Dashboard moderator sudah dipisah ke modul kecil.
 - Dashboard admin sudah dibuat ulang menjadi database-style interface mirip Notion.
 - Navbar desktop/mobile sudah memakai hook notifikasi bersama.
+- Portal Akses Petugas tersedia di `/access` untuk pengajuan role KSH/moderator melalui approval admin.
+- Endpoint list utama sudah mendukung pagination metadata dan search server-side terbatas.
+- Dokumentasi maintainer, operations runbook, dan privacy/data governance tersedia di `docs/`.
+- Gap produksi seperti OTP resmi, migrasi database server, monitoring, API GoBis resmi, tanda tangan digital, dan compliance legal final terdokumentasi di `docs/PRODUCTION_GAP_ROADMAP.md`.
 
 ## Tujuan Sistem
 
@@ -52,6 +56,7 @@ Sistem menggunakan role berbasis `role_code` di backend.
 | Admin | `admin` | Mengelola data, role, temporary adjustment, dan seluruh dashboard admin |
 
 Catatan: Role hierarchy tidak boleh diubah sembarangan karena dipakai untuk RBAC server-side.
+Register publik tetap membuat akun `user`/relawan. KSH dan moderator hanya aktif setelah admin menyetujui pengajuan akses melalui Portal Akses Petugas.
 
 ## Tech Stack
 
@@ -195,6 +200,7 @@ server/
     events.py              Event list/create/update/approval/publish/join/attendance/complete
     reports.py             Report list/create/review/verify/reject, XP, certificate trigger
     collaboration.py       Public mitra request dan approval
+    access_requests.py     Pengajuan akses KSH/moderator dan review admin
     geographic.py          Geo options, kodepos, kampung, pillar XP
     admin.py               Admin role dan temporary adjustments
     notifications.py       Notification list/count/read
@@ -224,6 +230,7 @@ src/
       LandingPage.tsx
       LoginPage.tsx
       RegisterPage.tsx
+      AccessRequestPage.tsx
       UserDashboard.tsx
       ModeratorDashboard.tsx
       AdminDashboard.tsx
@@ -283,6 +290,7 @@ Halaman utama:
 - Login relawan/moderator.
 - Admin login.
 - Register.
+- Portal Akses Petugas `/access`.
 - Collaboration page.
 - About dan FAQ.
 - User dashboard.
@@ -326,7 +334,23 @@ Admin login terpisah:
 - credential berasal dari env `SIMRP_ADMIN_LOGIN_USERNAME` dan `SIMRP_ADMIN_LOGIN_PASSWORD`
 - setelah valid, backend membuat session untuk akun admin di tabel users
 
-### 2. Event
+### 2. Portal Akses Petugas
+
+Portal `/access` dipakai untuk demo role approval tanpa mengubah register publik. Register tetap menghasilkan akun relawan (`user`). Jika relawan perlu menjadi KSH atau moderator, user mengajukan request dan admin melakukan review.
+
+Demo Access Portal Flow:
+
+1. User umum daftar sebagai relawan.
+2. User login dan membuka `/access`.
+3. User mengajukan akses KSH/moderator dengan scope wilayah.
+4. Admin membuka queue Pengajuan Akses.
+5. Admin approve atau reject request.
+6. User refresh atau login ulang.
+7. Dashboard berubah sesuai role baru jika request disetujui.
+
+Backend menyimpan data request yang tersimpan sebagai sumber kebenaran approval. Admin review hanya mengirim keputusan dan catatan, bukan role/scope final baru dari body request admin.
+
+### 3. Event
 
 Alur event:
 
@@ -354,7 +378,7 @@ Pilar event:
 3. Ekonomi Kreatif
 4. Keamanan
 
-### 3. Partisipasi
+### 4. Partisipasi
 
 Relawan/KSH dapat join event. Data masuk ke tabel `event_participation`.
 
@@ -366,7 +390,7 @@ Status partisipasi:
 
 KSH dapat menandai peserta hadir melalui endpoint attendance, lalu menandai event selesai dengan output summary.
 
-### 4. Laporan
+### 5. Laporan
 
 Alur laporan:
 
@@ -405,7 +429,7 @@ Jika ditolak:
 - notifikasi dibuat;
 - audit log dicatat.
 
-### 5. XP dan Leaderboard
+### 6. XP dan Leaderboard
 
 XP dihitung berdasarkan:
 
@@ -425,7 +449,7 @@ Frontend menampilkan:
 - rank card user;
 - top relawan di admin dashboard.
 
-### 6. Sertifikat Digital
+### 7. Sertifikat Digital
 
 Sertifikat dibuat setelah laporan diverifikasi. Data disimpan di tabel `certificates`.
 
@@ -450,7 +474,7 @@ Keamanan:
 - output HTML di-escape untuk mencegah XSS;
 - filename disanitasi.
 
-### 7. Reward Voucher
+### 8. Reward Voucher
 
 Reward menggunakan XP user untuk menukar voucher.
 
@@ -477,7 +501,7 @@ Proteksi:
 - kode voucher dibuat acak dengan prefix `GOBIS-SIMRP-`;
 - remaining points di-clamp agar tidak minus.
 
-### 8. Kolaborasi Mitra
+### 9. Kolaborasi Mitra
 
 Public form kolaborasi memungkinkan organisasi/mitra menawarkan dukungan.
 
@@ -501,7 +525,7 @@ Support type:
 
 Approval dilakukan oleh moderator/admin. Saat approve/reject, backend memiliki stub email agar flow siap dikembangkan ke SMTP nyata.
 
-### 9. Notifikasi
+### 10. Notifikasi
 
 Notifikasi disimpan di tabel `notifications`.
 
@@ -515,7 +539,7 @@ Dipakai untuk:
 
 Frontend navbar desktop dan mobile memakai hook bersama `useNotifications()` agar polling, unread count, dan mark-read konsisten.
 
-### 10. Admin Dashboard
+### 11. Admin Dashboard
 
 Admin dashboard terbaru sudah diubah menjadi database-style interface.
 
@@ -570,6 +594,10 @@ http://127.0.0.1:8000/make-server-32aa5c5c
 | Collaboration | GET | `/collaboration-requests` | List request mitra |
 | Collaboration | POST | `/collaboration-requests` | Public submit mitra |
 | Collaboration | POST | `/collaboration-requests/{id}/approval` | Review mitra |
+| Access | POST | `/access-requests` | User mengajukan akses KSH/moderator |
+| Access | GET | `/access-requests/me` | Riwayat pengajuan akses milik user |
+| Access Admin | GET | `/admin/access-requests` | Queue pengajuan akses admin |
+| Access Admin | POST | `/admin/access-requests/{id}/review` | Approve/reject pengajuan akses |
 | Notifications | GET | `/notifications/count` | Count unread |
 | Notifications | GET | `/notifications` | List notifikasi |
 | Notifications | POST | `/notifications/{id}/read` | Mark read |
@@ -585,6 +613,10 @@ http://127.0.0.1:8000/make-server-32aa5c5c
 | Kampung | GET | `/kampung/{id}/pillars` | XP empat pilar |
 | Landing | GET | `/landing/leaderboard` | Public leaderboard |
 | Recommendations | GET/POST | `/recommendations` | Stub 410/off-system |
+
+Endpoint list besar berikut mendukung `limit` dan `offset`: `/users`, `/users/me/participations`, `/events`, `/reports`, `/collaboration-requests`, dan `/notifications`. Metadata response ditambahkan sebagai `pagination: { limit, offset, total, hasMore }` tanpa menghapus array utama.
+
+Search server-side tersedia untuk `/users?q=` khusus admin, `/events?q=`, dan `/collaboration-requests?q=`. Query dibatasi panjangnya dan tetap memakai RBAC backend.
 
 ## Database Schema
 
@@ -602,6 +634,7 @@ Tabel utama:
 | `events` | Data kegiatan |
 | `event_participation` | Pendaftaran/hadir/lapor event |
 | `event_reports` | Laporan kegiatan |
+| `access_requests` | Pengajuan akses KSH/moderator dan status review admin |
 | `xp_kelurahan` | Total XP kelurahan |
 | `xp_pillar` | XP per pilar per kelurahan |
 | `audit_logs` | Audit trail admin/moderasi |
@@ -633,6 +666,7 @@ Keamanan yang sudah diterapkan:
 - KSH dibatasi ke wilayahnya.
 - Moderator Tier 2 dibatasi scope wilayah saat verifikasi laporan.
 - Admin-only endpoint dicek role admin.
+- Role KSH/moderator dari Portal Akses Petugas hanya aktif setelah approval admin.
 - SQL memakai parameterized query.
 - Input text dibatasi dengan helper `bounded_text`.
 - Email/password divalidasi.
@@ -721,6 +755,9 @@ Ringkasan pekerjaan yang sudah dilakukan:
 28. Mengekstrak shared notification hook untuk desktop/mobile navbar.
 29. Menyinkronkan `src/types/index.ts` dengan payload backend aktif.
 30. Membersihkan repository dari dokumen lama, agent artifacts, dan komponen contoh yang tidak dipakai.
+31. Menambahkan pagination/search server-side pada endpoint list utama.
+32. Menambahkan dokumentasi maintainer, runbook operasi, dan privacy/data governance.
+33. Menambahkan Portal Akses Petugas `/access`, API `access_requests`, dan skenario role approval untuk demo.
 
 ## Catatan Kode Saat Ini
 
@@ -731,6 +768,7 @@ Kondisi penting yang perlu diketahui:
 - `src/types/index.ts` sudah disinkronkan dengan payload backend aktif.
 - Beberapa modul API masih menyimpan sisa route dictionary/handler lama sebagai compatibility/legacy, tetapi runtime aktif menggunakan `handle_get`, `handle_post`, `handle_put`, dan `handle_delete` yang dipanggil dari `server/main.py`.
 - Dokumen publik aktif berada di README root, `docs/`, `SECURITY.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, dan `LICENSE.md`.
+- `docs/MAINTAINER_GUIDE.md`, `docs/OPERATIONS_RUNBOOK.md`, dan `docs/PRIVACY_AND_DATA_GOVERNANCE.md` menjadi rujukan teknis untuk developer dan operator berikutnya.
 
 ## Roadmap Lanjutan
 
@@ -741,6 +779,8 @@ Task lanjutan yang masih relevan:
 3. Evaluasi migrasi database dari SQLite ke database terkelola jika volume warga besar.
 4. Integrasikan SMTP/email nyata jika approval mitra perlu notifikasi eksternal.
 5. Integrasikan API resmi GoBis bila reward voucher ingin menjadi transaksi nyata.
+6. Selesaikan production gap yang membutuhkan vendor/legal/infrastruktur sesuai `docs/PRODUCTION_GAP_ROADMAP.md`.
+7. Lanjutkan Batch 5B untuk packaging demo Docker/GHCR/tunnel setelah audit ukuran project.
 
 ## Production Checklist
 
@@ -758,6 +798,7 @@ Sebelum dipakai di luar lokal:
 10. Jangan expose `.env`, database runtime, backup, atau `dev_credentials.txt`.
 11. Siapkan backup database rutin.
 12. Jalankan `npm run build` dan `npm run smoke`.
+13. Review `docs/PRODUCTION_GAP_ROADMAP.md` sebelum mengklaim sistem siap produksi publik.
 
 ## Konteks untuk Laporan KP
 

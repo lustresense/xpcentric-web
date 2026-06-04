@@ -184,6 +184,11 @@ def handle_get(handler, conn, path, query, deps):
         return _json(deps, handler, 403, {"error": "Hanya Moderator Tier 2/Admin"})
 
     status_filter = query.get("status", [None])[0] if query else None
+    try:
+        search_filter = deps["bounded_text"](query.get("q", [""])[0], 120)
+        limit, offset = deps["parse_pagination"](query, default_limit=100, max_limit=500)
+    except ValueError as exc:
+        return _json(deps, handler, 400, {"error": str(exc)})
     sql = """
           SELECT
             collaboration_requests.*,
@@ -200,11 +205,16 @@ def handle_get(handler, conn, path, query, deps):
     if status_filter in ("pending", "approved", "rejected"):
         sql += " AND collaboration_requests.status = ?"
         params.append(status_filter)
+    if search_filter:
+        sql += " AND (collaboration_requests.organization_name LIKE ? OR collaboration_requests.pic_name LIKE ? OR collaboration_requests.email LIKE ?)"
+        like = f"%{search_filter}%"
+        params.extend([like, like, like])
     scope_sql, scope_params = _collaboration_scope_clause(actor)
     sql += scope_sql
     params.extend(scope_params)
-    sql += " ORDER BY collaboration_requests.created_at DESC"
-    rows = conn.execute(sql, tuple(params)).fetchall()
+    total = conn.execute(f"SELECT COUNT(*) AS c FROM ({sql}) AS filtered_collaboration_requests", tuple(params)).fetchone()["c"]
+    sql += " ORDER BY collaboration_requests.created_at DESC LIMIT ? OFFSET ?"
+    rows = conn.execute(sql, tuple([*params, limit, offset])).fetchall()
     requests = []
     for row in rows:
         requests.append(
@@ -226,7 +236,7 @@ def handle_get(handler, conn, path, query, deps):
                 "createdAt": row["created_at"],
             }
         )
-    return _json(deps, handler, 200, {"requests": requests})
+    return _json(deps, handler, 200, {"requests": requests, "pagination": deps["pagination_payload"](total, limit, offset)})
 
 
 def handle_post(handler, conn, path, body, deps):
