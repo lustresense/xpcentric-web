@@ -1,6 +1,6 @@
 Proprietary Internal Use License
 
-Copyright (c) 2026 Farchan Deano, Ikram, and Dinas Komunikasi dan Informatika Kota Surabaya.
+Copyright (c) 2026 Farchan Deano Muhammad, Muh. Alfin Ikram Mullah Ratu Loly, and Dinas Komunikasi dan Informatika Kota Surabaya.
 
 This software is developed as a Kerja Praktik prototype for internal demonstration, evaluation, and documentation purposes.
 Permission to access, review, and run this software is granted only to the project contributors, academic supervisors, and authorized representatives of Dinas Komunikasi dan Informatika Kota Surabaya.
