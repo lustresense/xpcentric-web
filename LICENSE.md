@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 Farchan
+Copyright (c) 2026 TRM PENS 2023 A | NRP 01 & 12
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
