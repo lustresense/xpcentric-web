@@ -35,7 +35,7 @@ export function CertificatePreviewModal({
                 </span>
                 <div className="text-left">
                   <div className="text-xs uppercase tracking-[0.2em] text-gray-500">Pemerintah Kota Surabaya</div>
-                  <div className="text-lg font-bold text-green-900">SIMRP</div>
+                  <div className="text-lg font-bold text-green-900">SIMREKAP</div>
                 </div>
               </div>
 

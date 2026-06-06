@@ -1,6 +1,6 @@
-# Contributor Setup Guide - SIMRP
+# Contributor Setup Guide - SIMREKAP
 
-Panduan ini untuk menjalankan SIMRP di laptop lokal. State runtime yang dijelaskan di sini sesuai project per 2026-05-30.
+Panduan ini untuk menjalankan SIMREKAP di laptop lokal. State runtime yang dijelaskan di sini sesuai project per 2026-05-30.
 
 ## Quick Start
 
@@ -46,7 +46,7 @@ Di Windows, jika `python` tidak tersedia, script fallback akan mencoba `py -3`.
 
 ```bash
 git clone <LINK_REPO>
-cd Figmasimrp
+cd Figmasimrekap
 ```
 
 Jika project didapat dari ZIP, extract lalu buka terminal di root project.

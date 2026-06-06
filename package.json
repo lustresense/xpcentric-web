@@ -1,8 +1,8 @@
 {
-  "name": "simrp",
+  "name": "simrekap",
   "private": true,
   "version": "0.1.0",
-  "description": "SIMRP prototype web app for participatory kampung activity management, reporting, certificates, and rewards.",
+  "description": "SIMREKAP prototype web app for participatory kampung activity management, reporting, certificates, and rewards.",
   "license": "UNLICENSED",
   "type": "module",
   "scripts": {

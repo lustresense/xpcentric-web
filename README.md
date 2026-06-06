@@ -1,12 +1,12 @@
-# SIMRP - Sistem Informasi Manajemen Rekap Partisipatif
+# SIMREKAP - Sistem Informasi Manajemen Relawan Kampung Pancasila
 
-SIMRP adalah prototype aplikasi web untuk mengelola partisipasi warga Surabaya dalam program kampung berbasis kegiatan, laporan, XP, sertifikat, voucher transportasi, notifikasi, dan kolaborasi mitra. Proyek ini dikembangkan oleh Farchan sebagai bahan kerja praktik / KP dan dapat digunakan sebagai konteks teknis untuk penyusunan laporan atau buku KP.
+SIMREKAP adalah prototype aplikasi web untuk mengelola partisipasi warga Surabaya dalam program kampung berbasis kegiatan, laporan, XP, sertifikat, voucher transportasi, notifikasi, dan kolaborasi mitra. Proyek ini dikembangkan oleh Farchan sebagai bahan kerja praktik / KP dan dapat digunakan sebagai konteks teknis untuk penyusunan laporan atau buku KP.
 
 README ini sengaja dibuat lengkap agar bisa langsung dipakai sebagai bahan konteks untuk AI chat/web saat menyusun laporan akademik. Isi dokumen mencakup tujuan sistem, arsitektur aktual, fitur, alur bisnis, endpoint, database, keamanan, cara menjalankan, validasi, serta ringkasan kontribusi pengembangan.
 
 ## Ringkasan Singkat
 
-SIMRP menyimulasikan sistem partisipasi warga untuk program kampung di Surabaya. Relawan dapat mendaftar kegiatan, hadir, mengirim laporan, memperoleh XP, melihat leaderboard, mendapat sertifikat digital, dan menukar XP menjadi voucher transportasi GoBis/Suroboyo Bus. KSH dan ASN/moderator mengelola kegiatan serta memverifikasi laporan sesuai kewenangan wilayah. Admin mengawasi database pengguna, event, laporan, role, dan penyesuaian sementara.
+SIMREKAP menyimulasikan sistem partisipasi warga untuk program kampung di Surabaya. Relawan dapat mendaftar kegiatan, hadir, mengirim laporan, memperoleh XP, melihat leaderboard, mendapat sertifikat digital, dan menukar XP menjadi voucher transportasi GoBis/Suroboyo Bus. KSH dan ASN/moderator mengelola kegiatan serta memverifikasi laporan sesuai kewenangan wilayah. Admin mengawasi database pengguna, event, laporan, role, dan penyesuaian sementara.
 
 Status teknis per 2026-05-30:
 
@@ -27,7 +27,7 @@ Status teknis per 2026-05-30:
 
 ## Tujuan Sistem
 
-SIMRP dibuat untuk menjawab kebutuhan prototype sistem administrasi partisipasi warga:
+SIMREKAP dibuat untuk menjawab kebutuhan prototype sistem administrasi partisipasi warga:
 
 1. Mengelola data relawan, KSH, ASN/moderator, dan admin.
 2. Mengelola kegiatan kampung berdasarkan wilayah kelurahan/kecamatan.
@@ -498,7 +498,7 @@ Proteksi:
 - stok harus tersedia;
 - XP harus cukup;
 - update stok dan poin dilakukan server-side;
-- kode voucher dibuat acak dengan prefix `GOBIS-SIMRP-`;
+- kode voucher dibuat acak dengan prefix `GOBIS-SIMREKAP-`;
 - remaining points di-clamp agar tidak minus.
 
 ### 9. Kolaborasi Mitra
@@ -806,11 +806,11 @@ Bagian ini dapat dipakai sebagai bahan awal penulisan laporan KP.
 
 ### Judul yang Cocok
 
-Pengembangan Prototype Sistem Informasi Manajemen Rekap Partisipatif Berbasis Web untuk Pendataan Kegiatan Warga dan Apresiasi Relawan.
+Pengembangan Prototype Sistem Informasi Manajemen Relawan Kampung Pancasila Berbasis Web untuk Pendataan Kegiatan Warga dan Apresiasi Relawan.
 
 ### Latar Belakang
 
-Kegiatan warga di tingkat kampung sering membutuhkan pencatatan peserta, verifikasi laporan, rekap kontribusi, dan apresiasi kepada relawan. Jika proses masih dilakukan manual, data mudah tercecer, sulit diverifikasi, dan lambat direkap. SIMRP dikembangkan sebagai prototype aplikasi web untuk mendigitalisasi alur partisipasi tersebut, mulai dari pembuatan kegiatan, pendaftaran relawan, pencatatan kehadiran, pelaporan hasil kegiatan, validasi oleh aparatur wilayah, sampai pemberian sertifikat dan reward.
+Kegiatan warga di tingkat kampung sering membutuhkan pencatatan peserta, verifikasi laporan, rekap kontribusi, dan apresiasi kepada relawan. Jika proses masih dilakukan manual, data mudah tercecer, sulit diverifikasi, dan lambat direkap. SIMREKAP dikembangkan sebagai prototype aplikasi web untuk mendigitalisasi alur partisipasi tersebut, mulai dari pembuatan kegiatan, pendaftaran relawan, pencatatan kehadiran, pelaporan hasil kegiatan, validasi oleh aparatur wilayah, sampai pemberian sertifikat dan reward.
 
 ### Rumusan Masalah
 
@@ -857,7 +857,7 @@ Pengembangan dilakukan secara iteratif:
 
 ### Hasil Implementasi
 
-Hasil implementasi berupa aplikasi web prototype SIMRP dengan:
+Hasil implementasi berupa aplikasi web prototype SIMREKAP dengan:
 
 - landing page publik;
 - auth user dan admin;

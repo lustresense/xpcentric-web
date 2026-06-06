@@ -65,6 +65,10 @@ def write_dev_credentials_file():
     IS_PRODUCTION,
   )
 
+
+def existing_dev_credential(env_name):
+  return runtime_services.read_dev_credential(DEV_CREDENTIALS_PATH, env_name, IS_PRODUCTION)
+
 for import_path in (SERVER_DIR, ROOT_DIR):
   if str(import_path) not in sys.path:
     sys.path.insert(0, str(import_path))
@@ -138,12 +142,12 @@ ADMIN_LOGIN_PASSWORD = str(os.environ.get("SIMRP_ADMIN_LOGIN_PASSWORD", "")).str
 if not ADMIN_LOGIN_USERNAME and not IS_PRODUCTION:
   ADMIN_LOGIN_USERNAME = "admin"
 if not ADMIN_LOGIN_PASSWORD and not IS_PRODUCTION:
-  ADMIN_LOGIN_PASSWORD = generate_runtime_secret()
+  ADMIN_LOGIN_PASSWORD = existing_dev_credential("SIMRP_ADMIN_LOGIN_PASSWORD") or generate_runtime_secret()
   record_dev_credential("Admin portal", f"username={ADMIN_LOGIN_USERNAME}", "SIMRP_ADMIN_LOGIN_PASSWORD", ADMIN_LOGIN_PASSWORD)
 if ENABLE_DEMO_SEED and not DEMO_PASSWORD:
   if IS_PRODUCTION:
     raise RuntimeError("SIMRP_DEMO_PASSWORD is required when SIMRP_ENABLE_DEMO_SEED=true in production")
-  DEMO_PASSWORD = generate_runtime_secret()
+  DEMO_PASSWORD = existing_dev_credential("SIMRP_DEMO_PASSWORD") or generate_runtime_secret()
   record_dev_credential(
     "Demo user accounts",
     "emails=relawan.demo@simrp.app, moderator1.demo@simrp.app, ksh.demo@simrp.app, ...",
@@ -155,7 +159,7 @@ if OTP_PROVIDER not in ("disabled", "dev"):
 if OTP_PROVIDER != "disabled" and not OTP_SECRET:
   if IS_PRODUCTION:
     raise RuntimeError("SIMRP_OTP_SECRET wajib diisi saat OTP aktif di production")
-  OTP_SECRET = generate_runtime_secret()
+  OTP_SECRET = existing_dev_credential("SIMRP_OTP_SECRET") or generate_runtime_secret()
   record_dev_credential("OTP development provider", "provider=dev", "SIMRP_OTP_SECRET", OTP_SECRET)
 
 
@@ -194,7 +198,7 @@ def validate_production_config():
       errors.append(f"SIMRP_ALLOWED_ORIGINS production harus HTTPS: {origin}")
 
   if errors:
-    raise RuntimeError("Konfigurasi production SIMRP belum aman:\n- " + "\n- ".join(errors))
+    raise RuntimeError("Konfigurasi production SIMREKAP belum aman:\n- " + "\n- ".join(errors))
 
 _rate_lock = threading.Lock()
 _rate_hits = {}
@@ -617,7 +621,7 @@ def apply_xp(conn, event_row, participants):
 
 
 class Handler(BaseHTTPRequestHandler):
-  server_version = "SIMRP"
+  server_version = "SIMREKAP"
   sys_version = ""
 
   def do_OPTIONS(self):
@@ -785,7 +789,7 @@ def main():
   init_schema()
   write_dev_credentials_file()
   display_host = "127.0.0.1" if HOST in ("0.0.0.0", "::") else HOST
-  print(f"SIMRP API: http://{display_host}:{PORT}{API_PREFIX}")
+  print(f"SIMREKAP API: http://{display_host}:{PORT}{API_PREFIX}")
   print(f"Bind: {HOST}:{PORT}")
   print(f"DB: {DB_PATH}")
   print(f"Mode: {APP_ENV} | demo-seed={'on' if ENABLE_DEMO_SEED else 'off'}")

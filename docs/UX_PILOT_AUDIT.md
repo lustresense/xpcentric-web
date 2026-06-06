@@ -26,7 +26,7 @@ Audit ini menilai flow relawan pada viewport mobile dan kesiapan dasar dashboard
 
 - Form login sudah punya loading dan error alert.
 - Toggle relawan/moderator jelas secara fungsi.
-- Risiko UX: copy relawan masih bernuansa "pengawasan demokrasi", kurang nyambung dengan SIMRP sebagai partisipasi kampung Surabaya.
+- Risiko UX: copy relawan masih bernuansa "pengawasan demokrasi", kurang nyambung dengan SIMREKAP sebagai partisipasi kampung Surabaya.
 - Rekomendasi: ubah copy ke konteks "kegiatan kampung, laporan, sertifikat, dan voucher".
 
 ### Join Event
@@ -70,7 +70,7 @@ Audit ini menilai flow relawan pada viewport mobile dan kesiapan dasar dashboard
 
 ## Prioritas Fix Batch 3
 
-1. Perbaiki copy login relawan agar sesuai konteks SIMRP Surabaya.
+1. Perbaiki copy login relawan agar sesuai konteks SIMREKAP Surabaya.
 2. Ganti mojibake/emoji bermasalah pada event list dan reporting wizard.
 3. Tambahkan empty state yang lebih instruktif di event, laporan, sertifikat, reward, moderator queue.
 4. Ganti label tombol bahasa Inggris di flow warga/ASN.

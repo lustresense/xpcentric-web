@@ -1,5 +1,5 @@
 """
-SIMRP Admin Module
+SIMREKAP Admin Module
 Admin-only operations: user management, temporary adjustments.
 """
 from core import execute, commit, generate_entity_id, utc_now_iso, MIN_TEMP_POINTS, MAX_TEMP_POINTS

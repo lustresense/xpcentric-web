@@ -1,6 +1,6 @@
 # Account Recovery Runbook
 
-Runbook ini menjelaskan prosedur manual untuk kasus lupa password atau reset akun pada lingkungan demo/pilot SIMRP. Saat ini belum ada endpoint self-service reset password, sehingga semua recovery dilakukan oleh operator/admin yang berwenang.
+Runbook ini menjelaskan prosedur manual untuk kasus lupa password atau reset akun pada lingkungan demo/pilot SIMREKAP. Saat ini belum ada endpoint self-service reset password, sehingga semua recovery dilakukan oleh operator/admin yang berwenang.
 
 ## Prinsip Keamanan
 

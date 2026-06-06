@@ -1,6 +1,6 @@
 # Changelog
 
-All notable SIMRP changes are summarized here.
+All notable SIMREKAP changes are summarized here.
 
 ## 2026-05-30
 

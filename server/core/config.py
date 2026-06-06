@@ -1,5 +1,5 @@
 """
-SIMRP Core Configuration
+SIMREKAP Core Configuration
 Centralized configuration for the application.
 """
 import os

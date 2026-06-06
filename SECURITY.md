@@ -1,6 +1,6 @@
 # Security Policy
 
-SIMRP is a prototype application, but the repository should still be handled like a real production codebase.
+SIMREKAP is a prototype application, but the repository should still be handled like a real production codebase.
 
 ## Supported Version
 

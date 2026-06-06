@@ -1,0 +1,26 @@
+[Unit]
+Description=SIMREKAP API prototype service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/simrekap
+Environment=SIMRP_ENV=production
+Environment=SIMRP_HOST=127.0.0.1
+Environment=SIMRP_PORT=8000
+Environment=SIMRP_ENABLE_DEMO_SEED=false
+Environment=SIMRP_ALLOWED_ORIGINS=https://simrekap.example.go.id
+EnvironmentFile=/etc/simrekap/simrekap.env
+ExecStart=/usr/bin/python3 /opt/simrekap/server/main.py
+Restart=on-failure
+RestartSec=5
+User=simrekap
+Group=simrekap
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/opt/simrekap/database/runtime /opt/simrekap/database/backups
+
+[Install]
+WantedBy=multi-user.target

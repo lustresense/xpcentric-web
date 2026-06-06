@@ -1,5 +1,5 @@
 """
-SIMRP Event Module
+SIMREKAP Event Module
 Event CRUD, approval, joining, and completion.
 """
 import uuid

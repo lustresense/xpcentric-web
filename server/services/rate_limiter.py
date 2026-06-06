@@ -1,5 +1,5 @@
 """
-SIMRP Rate Limiter
+SIMREKAP Rate Limiter
 Thread-safe rate limiting for API endpoint helpers.
 """
 import time

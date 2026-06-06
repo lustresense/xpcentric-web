@@ -1,6 +1,6 @@
 # Architecture
 
-SIMRP is a single-page React application backed by a Python stdlib HTTP server and SQLite database.
+SIMREKAP is a single-page React application backed by a Python stdlib HTTP server and SQLite database.
 
 ## Runtime Overview
 

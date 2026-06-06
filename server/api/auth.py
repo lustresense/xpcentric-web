@@ -1,5 +1,5 @@
 """
-SIMRP Authentication Module.
+SIMREKAP Authentication Module.
 
 The active runtime still owns the database connection and shared helpers in
 server/main.py. These handlers receive those dependencies explicitly so auth

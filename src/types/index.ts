@@ -1,4 +1,4 @@
-// SIMRP frontend types aligned with the active Python/SQLite backend payloads.
+// SIMREKAP frontend types aligned with the active Python/SQLite backend payloads.
 
 export type UserRole = 'user' | 'moderator' | 'admin';
 export type RoleCode = 'user' | 'ksh' | 'moderator_t1' | 'moderator_t2' | 'moderator_t3' | 'admin';

@@ -1,5 +1,5 @@
 """
-SIMRP Collaboration Module
+SIMREKAP Collaboration Module
 Collaboration request management.
 """
 import uuid
@@ -147,22 +147,22 @@ def _send_approval_email_stub(row, approved):
     """
     import os
     status_text = "disetujui" if approved else "ditolak"
-    subject = f"[SIMRP] Permintaan Kolaborasi {status_text.capitalize()} — {row['organization_name']}"
+    subject = f"[SIMREKAP] Permintaan Kolaborasi {status_text.capitalize()} — {row['organization_name']}"
     body_text = (
         f"Yth. {row['pic_name']},\n\n"
         f"Permintaan kolaborasi dari {row['organization_name']} telah {status_text} "
-        f"oleh tim SIMRP.\n\n"
+        f"oleh tim SIMREKAP.\n\n"
         f"Jenis dukungan: {row['support_type']}\n"
         f"Deskripsi: {row['support_description'][:200]}\n\n"
         f"Terima kasih atas partisipasi dan dukungan Anda.\n\n"
-        f"Salam,\nTim SIMRP — Pemerintah Kota Surabaya"
+        f"Salam,\nTim SIMREKAP — Pemerintah Kota Surabaya"
     )
     email_payload = {
         "to": row["email"],
         "subject": subject,
         "body": body_text,
         "smtp_host": os.environ.get("SIMRP_SMTP_HOST", "[not configured]"),
-        "from": os.environ.get("SIMRP_EMAIL_FROM", "noreply@simrp.surabaya.go.id"),
+        "from": os.environ.get("SIMRP_EMAIL_FROM", "noreply@simrekap.surabaya.go.id"),
     }
     # Stub: log ke stdout. Ganti dengan SMTP call di production.
     smtp_status = "configured" if os.environ.get("SIMRP_SMTP_HOST") else "not-configured"

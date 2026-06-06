@@ -1,25 +1,29 @@
+name: simrekap
+
 services:
   api:
+    image: ghcr.io/lustresense/simrekap:api-demo
     build:
       context: .
       dockerfile: Dockerfile.api
     environment:
       SIMRP_HOST: 0.0.0.0
       SIMRP_PORT: 8000
-      SIMRP_DB_PATH: /data/simrp/database.db
+      SIMRP_DB_PATH: /data/simrekap/database.db
     volumes:
-      - simrp-data:/data/simrp
+      - simrekap-data:/data/simrekap
     expose:
       - "8000"
 
   web:
+    image: ghcr.io/lustresense/simrekap:web-demo
     build:
       context: .
       dockerfile: Dockerfile.web
     ports:
-      - "8080:80"
+      - "7761:80"
     depends_on:
       - api
 
 volumes:
-  simrp-data:
+  simrekap-data:

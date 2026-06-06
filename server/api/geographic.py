@@ -1,5 +1,5 @@
 """
-SIMRP Geographic Module.
+SIMREKAP Geographic Module.
 
 Handles geographic lookup routes delegated from server/main.py.
 """

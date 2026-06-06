@@ -1,4 +1,4 @@
-# SIMRP Documentation
+# SIMREKAP Documentation
 
 This directory contains the public project documentation that should remain in the repository.
 
@@ -13,6 +13,7 @@ This directory contains the public project documentation that should remain in t
 - [Production Gap Roadmap](PRODUCTION_GAP_ROADMAP.md)
 - [Maintainer Guide](MAINTAINER_GUIDE.md)
 - [Operations Runbook](OPERATIONS_RUNBOOK.md)
+- [Server Docker Runbook](SERVER_DOCKER_RUNBOOK.md)
 - [Account Recovery Runbook](ACCOUNT_RECOVERY_RUNBOOK.md)
 - [Privacy and Data Governance](PRIVACY_AND_DATA_GOVERNANCE.md)
 - [UX Pilot Audit](UX_PILOT_AUDIT.md)
@@ -20,6 +21,8 @@ This directory contains the public project documentation that should remain in t
 The root [README](../README.md) is the primary overview and can be used as context for academic reporting, demos, or onboarding.
 
 For the role-approval demo, see "Demo Access Portal Flow" in [Demo Accounts](DEMO_ACCOUNTS.md) and the access request endpoints in [API Reference](API_REFERENCE.md).
+
+For the VM/server-prodi demo package, compose runtime, and temporary tunnel fallback, see "Demo Docker Runtime" in [Deployment Guide](DEPLOYMENT.md).
 
 ## Documentation Rules
 

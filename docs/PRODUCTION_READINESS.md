@@ -1,6 +1,6 @@
 # Production Readiness
 
-SIMRP has been hardened for a credible prototype/demo environment, but it should still be reviewed before being used as a public government-facing service.
+SIMREKAP has been hardened for a credible prototype/demo environment, but it should still be reviewed before being used as a public government-facing service.
 
 ## Ready for Demonstration
 
@@ -10,6 +10,8 @@ SIMRP has been hardened for a credible prototype/demo environment, but it should
 - RBAC is enforced server-side for user, moderator, KSH, and admin flows.
 - Admin dashboard separates relawan, ASN/moderator, and admin records.
 - Portal Akses Petugas `/access` supports request-based KSH/moderator approval for demo flows.
+- Docker demo runtime is available through `docker-compose.yml` with separate `web` and `api` services.
+- Temporary tunnel fallback is documented for short internal demos.
 - Demo seed can be disabled for production.
 - Runtime credentials and database files are ignored by Git.
 - Large list endpoints support pagination metadata, with bounded search for selected admin/event/collaboration lists.
@@ -28,8 +30,9 @@ SIMRP has been hardened for a credible prototype/demo environment, but it should
 - Review certificate legality if certificates need official digital signature status.
 - Replace email stub with real SMTP or notification provider if email delivery is required.
 - Add operational monitoring and log rotation.
-- Treat `deploy/nginx/simrp-api.conf.example` and `deploy/systemd/simrp-api.service.example` as examples only, not drop-in production config.
+- Treat `deploy/nginx/simrekap-api.conf.example` and `deploy/systemd/simrekap-api.service.example` as examples only, not drop-in production config.
 - Treat `/access` as a request portal only. It is not direct moderator activation; active role changes require admin approval.
+- Treat Docker/GHCR/tunnel as demo or pilot packaging. It still needs HTTPS/domain ownership, monitoring, backup operations, and secret governance before public production.
 
 ## Final Validation Checklist
 
@@ -38,6 +41,9 @@ npm install
 npm run build
 python -m py_compile server/main.py
 npm run smoke
+docker compose build
+docker compose up -d
+curl http://localhost:7761/make-server-32aa5c5c/health
 npm audit --audit-level=high
 git diff --check
 ```
@@ -53,4 +59,5 @@ git diff --check
 - OTP is optional/dev-mode for demo and must not block register/login unless a real provider is configured deliberately.
 - `/access` is a portal for access requests, not direct moderator activation.
 - KSH/moderator roles become active only after admin approval.
+- Docker and temporary tunnels are suitable for demo delivery, not final city-wide hosting.
 - OTP, official GoBis integration, legal digital signature, and final UU PDP compliance are external-dependency gaps, not completed implementation.

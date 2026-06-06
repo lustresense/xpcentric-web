@@ -1,6 +1,6 @@
 # Maintainer Guide
 
-Dokumen ini menjelaskan cara merawat kode SIMRP agar developer berikutnya mudah membaca, mengubah, dan memvalidasi project tanpa merusak alur bisnis utama.
+Dokumen ini menjelaskan cara merawat kode SIMREKAP agar developer berikutnya mudah membaca, mengubah, dan memvalidasi project tanpa merusak alur bisnis utama.
 
 ## Prinsip Maintainer
 

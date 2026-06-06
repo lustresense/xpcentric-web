@@ -1,1 +1,1 @@
-"""Runtime service helpers for SIMRP."""
+"""Runtime service helpers for SIMREKAP."""

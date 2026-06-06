@@ -108,7 +108,7 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
               <span className="text-sm font-semibold">SIMREKAP</span>
             </div>
             <p className="mt-3 text-xs leading-relaxed text-white/82">
-              Sistem Informasi Manajemen RElawan KAmpung Pancasila berbasis data terverifikasi.
+              Sistem Informasi Manajemen Relawan Kampung Pancasila berbasis data terverifikasi.
             </p>
           </div>
           <div>

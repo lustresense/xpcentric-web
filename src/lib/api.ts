@@ -1,5 +1,5 @@
 /**
- * Centralized API client for SIMRP/SIMREKAP local backend.
+ * Centralized API client for SIMREKAP local backend.
  * All requests should go through this module.
  */
 

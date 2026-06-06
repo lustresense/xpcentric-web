@@ -1,10 +1,10 @@
 # Privacy and Data Governance
 
-Dokumen ini menjelaskan data yang diproses SIMRP, prinsip perlindungan data, dan batas prototype. Dokumen ini bukan opini legal final, tetapi panduan teknis agar pengembangan tetap sadar privasi.
+Dokumen ini menjelaskan data yang diproses SIMREKAP, prinsip perlindungan data, dan batas prototype. Dokumen ini bukan opini legal final, tetapi panduan teknis agar pengembangan tetap sadar privasi.
 
 ## Jenis Data Yang Disimpan
 
-SIMRP dapat menyimpan data berikut:
+SIMREKAP dapat menyimpan data berikut:
 
 - Identitas akun: nama, email, role, dan nomor HP jika user memakai flow OTP.
 - Wilayah: kecamatan, kelurahan, kodepos, mapping kampung.

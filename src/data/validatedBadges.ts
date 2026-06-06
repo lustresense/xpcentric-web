@@ -162,7 +162,7 @@ export const ACHIEVEMENT_BADGES = [
     id: 'pioneer',
     name: 'Pioneer',
     icon: '🚀',
-    description: 'Early adopter SIMRP',
+    description: 'Early adopter SIMREKAP',
     type: 'custom' as const,
     maxAssignments: 999
   },

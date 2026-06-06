@@ -1,5 +1,5 @@
 """
-SIMRP Certificates Module.
+SIMREKAP Certificates Module.
 
 Handles certificate listing, verification, and HTML download for printing as PDF.
 """
@@ -34,7 +34,7 @@ def _send_html_download(handler, filename, html_bytes, deps):
 
 def _safe_download_filename(value):
   cleaned = re.sub(r"[^A-Za-z0-9._ -]+", "-", str(value)).strip(" .-")
-  return cleaned or "sertifikat-simrp"
+  return cleaned or "sertifikat-simrekap"
 
 
 def _generate_certificate_html(cert):
@@ -56,7 +56,7 @@ def _generate_certificate_html(cert):
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sertifikat SIMRP &mdash; {user_name}</title>
+  <title>Sertifikat SIMREKAP &mdash; {user_name}</title>
   <style>
     * {{ box-sizing: border-box; margin: 0; padding: 0; }}
     body {{
@@ -155,7 +155,7 @@ def _generate_certificate_html(cert):
         </div>
         <div class="logo-text">
           <div class="org">Pemerintah Kota Surabaya</div>
-          <div class="name">SIMRP</div>
+          <div class="name">SIMREKAP</div>
         </div>
       </div>
 
@@ -222,7 +222,7 @@ def handle_get(handler, conn, path, deps):
     if cert["user_id"] != actor["id"] and actor["role_code"] != "admin":
       return _json(deps, handler, 403, {"error": "Forbidden"})
     safe_title = _safe_download_filename(str(cert["event_title"])[:40])
-    filename = _safe_download_filename(f"sertifikat-simrp-{cert_id[:8]}-{safe_title}") + ".html"
+    filename = _safe_download_filename(f"sertifikat-simrekap-{cert_id[:8]}-{safe_title}") + ".html"
     html_bytes = _generate_certificate_html(cert)
     _send_html_download(handler, filename, html_bytes, deps)
     return True

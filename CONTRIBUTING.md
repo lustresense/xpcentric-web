@@ -1,6 +1,6 @@
 # Contributing Guide
 
-Terima kasih sudah membantu pengembangan SIMRP. Panduan ini menjaga perubahan tetap kecil, aman, dan mudah direview.
+Terima kasih sudah membantu pengembangan SIMREKAP. Panduan ini menjaga perubahan tetap kecil, aman, dan mudah direview.
 
 ## Branch
 

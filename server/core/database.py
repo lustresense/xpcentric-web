@@ -1,5 +1,5 @@
 """
-SIMRP Database Manager
+SIMREKAP Database Manager
 Handles SQLite database connections and operations.
 """
 import sqlite3

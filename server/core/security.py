@@ -1,5 +1,5 @@
 """
-SIMRP Security Utilities
+SIMREKAP Security Utilities
 Password hashing, verification, and token generation.
 """
 import os

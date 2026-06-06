@@ -1,5 +1,5 @@
 """
-SIMRP Access Request Module.
+SIMREKAP Access Request Module.
 
 Handles the officer access portal backend. Public registration remains a
 regular relawan signup; KSH/moderator roles only become active after admin

@@ -1,4 +1,4 @@
-"""SIMRP Core Package - Complete Exports"""
+"""SIMREKAP Core Package - Complete Exports"""
 from server.core.config import *
 from server.core.database import get_db, execute, commit, close_db, db_manager
 from server.core.security import hash_password, verify_password, generate_token, generate_entity_id, secure_compare, utc_now_iso

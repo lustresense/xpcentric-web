@@ -1,5 +1,5 @@
 """
-SIMRP Notifications Module.
+SIMREKAP Notifications Module.
 
 Handles notification listing and read status delegated from server/main.py.
 """

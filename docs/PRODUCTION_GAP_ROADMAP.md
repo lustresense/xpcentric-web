@@ -4,13 +4,14 @@ Dokumen ini merinci Batch 5: gap yang belum boleh diklaim selesai untuk produksi
 
 ## Status Singkat
 
-SIMRP saat ini layak sebagai prototype demo dan pilot terbatas. Untuk pemakaian publik warga Surabaya skala kota, item di bawah membutuhkan keputusan vendor, legal, infrastruktur, atau migrasi teknis besar.
+SIMREKAP saat ini layak sebagai prototype demo dan pilot terbatas. Untuk pemakaian publik warga Surabaya skala kota, item di bawah membutuhkan keputusan vendor, legal, infrastruktur, atau migrasi teknis besar.
 
 | Gap | Status Saat Ini | Agar Bisa Dicentang |
 |---|---|---|
 | OTP/nomor HP resmi | Foundation backend selesai; provider resmi belum tersambung | Pilih provider resmi, kontrak layanan, adapter pengiriman OTP, dan fallback recovery |
 | Migrasi SQLite ke PostgreSQL/MySQL | FUTURE/BLOCKED; tidak dikerjakan untuk demo/KP | Adapter DB baru, migration scripts, test data, backup/restore, load test |
 | Monitoring, log rotation, reverse proxy HTTPS | Baru contoh konfigurasi | Server target, TLS domain, service manager, central logging, alerting |
+| Docker/GHCR/tunnel demo package | Demo runtime tervalidasi untuk prototype | Registry governance, image scanning, secrets policy, TLS/domain, monitoring, backup SOP |
 | API GoBis resmi | Belum ada integrasi resmi | Dokumentasi/API credential resmi, sandbox, kontrak redeem, reconciliation |
 | Sertifikat tanda tangan digital resmi | Belum ada legal signing | Provider tanda tangan digital/CA, policy legal, signing flow, verification |
 | Compliance legal final UU PDP | Belum final legal | DPO/pemilik data, DPIA, consent final, retensi, breach response, dokumen hukum |
@@ -97,11 +98,35 @@ Backend masih dijalankan langsung oleh Python stdlib server. Dokumentasi contoh 
 
 ### Referensi
 
-- `deploy/nginx/simrp-api.conf.example`
-- `deploy/systemd/simrp-api.service.example`
+- `deploy/nginx/simrekap-api.conf.example`
+- `deploy/systemd/simrekap-api.service.example`
 - `docs/DEPLOYMENT.md`
 
-## 4. Integrasi API GoBis Resmi
+## 4. Docker/GHCR dan Tunnel Demo
+
+### Batas Prototype
+
+Docker package saat ini ditujukan untuk demo server prodi, sidang KP, atau review internal. Runtime memakai dua service:
+
+- `web`: Nginx untuk `dist/` frontend dan proxy API prefix `/make-server-32aa5c5c`;
+- `api`: Python backend dengan SQLite di volume `/data/simrekap`.
+
+Cloudflare Quick Tunnel atau tunnel sejenis hanya fallback untuk URL demo sementara. Random tunnel URL bukan domain permanen dan bukan production hosting.
+
+### Requirement Produksi
+
+- Image registry governance: permission GHCR, tag policy, dan rollback policy.
+- Image scanning sebelum deploy.
+- Secret injection dari server/secret manager, bukan baked image.
+- TLS/domain resmi, bukan random tunnel.
+- Monitoring, log rotation, uptime alert, dan backup/restore volume SQLite atau managed database.
+- SOP reset demo credentials setelah URL/credential dibagikan ke peserta demo.
+
+### Status 2026-06-05
+
+Docker runtime sudah tervalidasi untuk demo lokal: build, run, health check, frontend, admin login, dan persistence volume. Ini tetap bukan klaim production city-wide.
+
+## 5. Integrasi API GoBis Resmi
 
 ### Batas Prototype
 
@@ -112,7 +137,7 @@ Voucher GoBis saat ini simulasi in-app. Kode voucher dibuat untuk demo dan belum
 - Dokumen API resmi atau MoU integrasi.
 - Sandbox dan production credentials.
 - Kontrak request/response untuk issue voucher, redeem, cancel, dan status check.
-- Reconciliation harian antara SIMRP dan sistem GoBis.
+- Reconciliation harian antara SIMREKAP dan sistem GoBis.
 - Audit log setiap transaksi.
 - Idempotency key untuk mencegah redeem ganda.
 - Error handling aman jika provider down.
@@ -123,7 +148,7 @@ Voucher GoBis saat ini simulasi in-app. Kode voucher dibuat untuk demo dan belum
 - Potensi klaim palsu soal tiket transportasi.
 - Sulit audit biaya dan stok.
 
-## 5. Sertifikat Dengan Tanda Tangan Digital Resmi
+## 6. Sertifikat Dengan Tanda Tangan Digital Resmi
 
 ### Batas Prototype
 
@@ -138,7 +163,7 @@ Sertifikat saat ini berupa HTML siap cetak dengan hash verifikasi. Ini cukup unt
 - Endpoint verify harus memvalidasi signature, bukan hanya hash.
 - Policy revoke/void sertifikat jika laporan dibatalkan.
 
-## 6. Compliance Legal Final UU PDP
+## 7. Compliance Legal Final UU PDP
 
 ### Batas Prototype
 

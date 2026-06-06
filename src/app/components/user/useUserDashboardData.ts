@@ -229,7 +229,7 @@ export function useUserDashboardData({ user, authToken }: UseUserDashboardDataPa
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = filename || `sertifikat-simrp-${cert.id}.html`;
+      link.download = filename || `sertifikat-simrekap-${cert.id}.html`;
       document.body.appendChild(link);
       link.click();
       link.remove();

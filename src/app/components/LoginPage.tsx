@@ -154,7 +154,7 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
             className="font-medium text-sm"
             style={{ color: `${theme.onPrimary}CC` }}
           >
-            SIMRP Surabaya v2.4
+            SIMREKAP Surabaya v2.4
           </span>
         </div>
 

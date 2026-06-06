@@ -43,7 +43,7 @@ def write_dev_credentials_file():
   if IS_PRODUCTION or not _DEV_CREDENTIAL_NOTES:
     return
   lines = [
-    "SIMRP local development credentials",
+    "SIMREKAP local development credentials",
     "Generated because one or more demo credential environment variables were not set.",
     "This file is under database/runtime/ and must stay ignored by Git.",
     "",
@@ -1957,7 +1957,7 @@ class Handler(BaseHTTPRequestHandler):
 def main():
   init_schema()
   write_dev_credentials_file()
-  print(f"Local SIMRP API: http://127.0.0.1:8001{API_PREFIX}")
+  print(f"Local SIMREKAP API: http://127.0.0.1:8001{API_PREFIX}")
   print(f"DB: {DB_PATH}")
   server = ThreadingHTTPServer(("127.0.0.1", 8001), Handler)
   server.serve_forever()

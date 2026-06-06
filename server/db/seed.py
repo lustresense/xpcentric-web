@@ -1,4 +1,4 @@
-"""Seed helpers for SIMRP SQLite data."""
+"""Seed helpers for SIMREKAP SQLite data."""
 
 import os
 import uuid

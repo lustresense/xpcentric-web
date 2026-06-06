@@ -1,6 +1,6 @@
 # Operations Runbook
 
-Runbook ini dipakai untuk menjalankan, memvalidasi, backup, dan troubleshooting SIMRP pada lingkungan lokal, demo, atau pilot terbatas.
+Runbook ini dipakai untuk menjalankan, memvalidasi, backup, dan troubleshooting SIMREKAP pada lingkungan lokal, demo, atau pilot terbatas.
 
 ## Start Lokal
 

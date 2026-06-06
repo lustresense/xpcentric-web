@@ -1,1 +1,1 @@
-"""Database schema, migration, and seed helpers for SIMRP."""
+"""Database schema, migration, and seed helpers for SIMREKAP."""

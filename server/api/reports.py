@@ -1,5 +1,5 @@
 """
-SIMRP Report Module
+SIMREKAP Report Module
 Report creation and verification.
 """
 import hashlib

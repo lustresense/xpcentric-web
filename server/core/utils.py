@@ -1,5 +1,5 @@
 """
-SIMRP Core Utilities
+SIMREKAP Core Utilities
 Shared helpers extracted from server/main.py with identical behavior.
 """
 import os

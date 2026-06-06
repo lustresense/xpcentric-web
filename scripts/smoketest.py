@@ -1,5 +1,5 @@
 """
-SIMRP smoke test for the modular API.
+SIMREKAP smoke test for the modular API.
 
 Prerequisites:
 - Start the API separately, or set SIMRP_SMOKE_BASE to another running API URL.

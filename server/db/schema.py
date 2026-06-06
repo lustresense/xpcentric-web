@@ -1,4 +1,4 @@
-"""SQLite base schema creation for SIMRP."""
+"""SQLite base schema creation for SIMREKAP."""
 
 
 TABLE_SCHEMAS = [

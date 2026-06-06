@@ -1,12 +1,12 @@
-# Demo Accounts SIMRP
+# Demo Accounts SIMREKAP
 
-Dokumen ini menjelaskan akun demo yang dibuat oleh seed aktif SIMRP. Password nyata tidak ditulis di repo. Untuk development, password dibuat otomatis atau diambil dari environment variable.
+Dokumen ini menjelaskan akun demo yang dibuat oleh seed aktif SIMREKAP. Password nyata tidak ditulis di repo. Untuk development, password dibuat otomatis atau diambil dari environment variable.
 
 Last updated: 2026-05-30
 
 ## Ringkasan Credential
 
-SIMRP punya dua jalur login:
+SIMREKAP punya dua jalur login:
 
 | Jalur | URL | Identifier | Password |
 |---|---|---|---|

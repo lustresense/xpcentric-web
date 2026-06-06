@@ -24,11 +24,27 @@ def record_dev_credential(notes, label, identifier, env_name, secret, is_product
   })
 
 
+def read_dev_credential(path, env_name, is_production):
+  if is_production or not path.exists():
+    return ""
+  try:
+    if path.stat().st_size > 16 * 1024:
+      return ""
+    prefix = f"{env_name}="
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+      line = raw_line.strip()
+      if line.startswith(prefix):
+        return line.split("=", 1)[1].strip()
+  except OSError:
+    return ""
+  return ""
+
+
 def write_dev_credentials_file(path, notes, is_production):
   if is_production or not notes:
     return
   lines = [
-    "SIMRP local development credentials",
+    "SIMREKAP local development credentials",
     "Generated because one or more demo credential environment variables were not set.",
     "This file is under database/runtime/ and must stay ignored by Git.",
     "",

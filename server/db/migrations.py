@@ -1,4 +1,4 @@
-"""SQLite migrations for SIMRP."""
+"""SQLite migrations for SIMREKAP."""
 
 
 def migrate_schema(conn, execute):

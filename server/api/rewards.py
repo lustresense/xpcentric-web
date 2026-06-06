@@ -1,5 +1,5 @@
 """
-SIMRP Rewards Module.
+SIMREKAP Rewards Module.
 
 Handles rewards catalog and redemption delegated from server/main.py.
 """
@@ -16,7 +16,7 @@ def _voucher_display(row):
   description = description or ""
   if name.startswith("Voucher Rp"):
     name = name.replace("Voucher ", "Voucher GoBis ", 1)
-  if "demo simrp" in description.lower():
+  if "demo simrekap" in description.lower():
     description = (
       "Voucher transportasi untuk ditukarkan di aplikasi GoBis sebagai akses tiket "
       "Suroboyo Bus dan layanan angkutan publik terkait."
@@ -115,7 +115,7 @@ def handle_post(handler, conn, path, body, deps):
     return _json(deps, handler, 400, {"error": "XP kamu belum cukup untuk menukar voucher ini"})
 
   redemption_id = f"redeem-{uuid.uuid4().hex[:12]}"
-  voucher_code = f"GOBIS-SIMRP-{secrets.token_hex(4).upper()}"
+  voucher_code = f"GOBIS-SIMREKAP-{secrets.token_hex(4).upper()}"
   expires_at = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
   deps["execute"](
     conn,

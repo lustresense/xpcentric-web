@@ -1,1 +1,1 @@
-"""SIMRP Server Package"""
+"""SIMREKAP Server Package"""
