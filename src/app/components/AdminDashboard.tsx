@@ -140,10 +140,11 @@ export function AdminDashboard({
                 />
               </TabsContent>
 
-              <TabsContent value="collaboration" className="space-y-4 text-black">
+              <TabsContent value="collaboration" className="space-y-4">
                 <ModeratorCollaborationReview
                   pendingCollaborationRequests={pendingCollaborationRequests}
                   onCollaborationApproval={handleCollaborationApproval}
+                  variant="dark"
                 />
               </TabsContent>
 

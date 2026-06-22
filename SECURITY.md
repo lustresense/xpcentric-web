@@ -1,55 +1,109 @@
 # Security Policy
 
-SIMREKAP is a prototype application, but the repository should still be handled like a real production codebase.
+SIMREKAP adalah prototype Kerja Praktik, tetapi repository harus diperlakukan seperti codebase produksi karena menyentuh auth, role, laporan, sertifikat, reward, dan data pengguna.
 
 ## Supported Version
 
-Security fixes target the current `update` branch and any branch explicitly used for active demonstration or deployment.
+Security fixes ditargetkan ke branch aktif:
+
+```text
+lustresense/xpcentric-web:main
+```
+
+Branch lama atau mirror lain tidak dianggap sumber deployment utama kecuali disebutkan eksplisit oleh maintainer.
 
 ## Reporting Security Issues
 
-Do not publish sensitive security issues in public screenshots, issues, or commits. Report them directly to the maintainer with:
+Jangan membuka detail kerentanan lewat public issue, screenshot publik, atau commit message. Laporkan langsung ke maintainer proyek dengan informasi berikut:
 
-- affected endpoint or screen;
-- reproduction steps;
-- expected vs actual behavior;
-- whether credentials, sessions, RBAC, database writes, certificates, or rewards are affected.
+- endpoint atau screen yang terdampak;
+- langkah reproduksi;
+- dampak terhadap auth, session, RBAC, database write, sertifikat, reward, atau data pengguna;
+- expected behavior dan actual behavior;
+- apakah butuh rotasi credential atau reset session.
 
 ## Secret Handling
 
-Never commit:
+Jangan commit:
 
-- `.env` or `.env.local`;
-- `database/runtime/`;
-- `database/backups/`;
-- `database/runtime/dev_credentials.txt`;
-- API keys, tokens, passwords, or real citizen data.
+- `.env`
+- `.env.local`
+- `database/runtime/`
+- `database/backups/`
+- `database/runtime/dev_credentials.txt`
+- database SQLite runtime
+- API key, token, password, cookie, atau data warga nyata
 
-Use `.env.example` for placeholders only.
+Gunakan `.env.example` untuk placeholder. Credential demo development boleh dibuat otomatis oleh backend, tetapi file hasilnya tetap lokal dan harus di-ignore.
 
-## Required Checks
+## Security Baseline
 
-Before production-like usage:
+Implementasi saat ini mencakup:
+
+- password hashing PBKDF2-HMAC-SHA256;
+- bearer session token yang disimpan server-side;
+- server-side RBAC;
+- scope wilayah untuk aksi moderator;
+- parameterized SQL;
+- batas ukuran request body;
+- rate limiting untuk auth dan mutation;
+- CORS allowlist;
+- security headers;
+- audit log untuk aksi penting;
+- notification untuk perubahan status penting;
+- download sertifikat memakai Authorization header, bukan token di URL;
+- Portal Akses Petugas dengan approval admin sebelum role KSH/moderator aktif.
+
+## Production-Like Deployment Checklist
+
+Sebelum demo publik atau deployment yang bisa diakses jaringan luar:
 
 ```bash
 npm run build
 python -m py_compile server/main.py
 npm run smoke
+docker compose build
+docker compose up -d
+curl http://localhost:7761/make-server-32aa5c5c/health
 ```
 
-Review `.env.example`, set strong admin credentials, disable demo seed, and set a strict CORS allowlist.
+Pastikan:
 
-## Security Baseline
+- `SIMRP_ENV=production` untuk deployment non-lokal.
+- Admin password kuat dan tidak memakai credential demo.
+- `SIMRP_ALLOWED_ORIGINS` diisi domain yang benar.
+- Demo seed hanya aktif jika memang untuk demo.
+- Database runtime berada di volume persisten.
+- Backup database diuji restore-nya.
+- Cloudflare Quick Tunnel hanya dipakai sebagai fallback demo, bukan arsitektur produksi final.
 
-The current codebase includes:
+## Known Prototype Boundaries
 
-- PBKDF2-HMAC-SHA256 password hashing;
-- bearer session tokens stored server-side;
-- server-side RBAC;
-- moderator scope checks by wilayah;
-- parameterized SQL queries;
-- request body size limits;
-- auth and mutation rate limiting;
-- production startup guardrails;
-- security headers and CORS allowlist;
-- audit logging for important actions.
+SIMREKAP belum boleh diklaim siap produksi publik penuh sebelum gap berikut ditutup:
+
+- OTP/SMS atau identity verification resmi.
+- Monitoring, log retention, alerting, dan incident response.
+- Review legal/privacy untuk data warga.
+- Database server managed jika volume pengguna besar.
+- Integrasi resmi GoBis jika voucher menjadi transaksi nyata.
+- Sertifikat dengan tanda tangan digital/legal formal jika diperlukan.
+
+Detail roadmap ada di `docs/PRODUCTION_GAP_ROADMAP.md`.
+
+## Incident Response
+
+Jika credential bocor:
+
+1. Hapus credential dari repository atau media publik.
+2. Rotasi password atau token terkait.
+3. Invalidate session jika perlu.
+4. Cek audit log untuk aktivitas tidak wajar.
+5. Update dokumentasi mitigasi jika penyebabnya berasal dari workflow.
+
+Jika database runtime bocor:
+
+1. Anggap semua data di database tersebut kompromi.
+2. Hentikan container terkait.
+3. Rotasi credential admin/demo.
+4. Restore dari backup bersih jika tersedia.
+5. Jangan commit database runtime ke Git.

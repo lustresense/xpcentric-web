@@ -2,35 +2,37 @@
 
 :root {
   --font-size: 16px;
-  --background: #ffffff;
-  --foreground: oklch(0.145 0 0);
-  --card: #ffffff;
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: #030213;
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.95 0.0058 264.53);
-  --secondary-foreground: #030213;
-  --muted: #ececf0;
-  --muted-foreground: #717182;
-  --accent: #e9ebef;
-  --accent-foreground: #030213;
+  --font-interface: 'Geist', Arial, Helvetica, sans-serif;
+  --font-code: 'Geist Mono', 'SFMono-Regular', Consolas, monospace;
+  --background: #f7f4ec;
+  --foreground: #180f0c;
+  --card: #fffdf7;
+  --card-foreground: #180f0c;
+  --popover: #fffdf7;
+  --popover-foreground: #180f0c;
+  --primary: #123f32;
+  --primary-foreground: #fffaf0;
+  --secondary: #e8e1d3;
+  --secondary-foreground: #180f0c;
+  --muted: #ece6db;
+  --muted-foreground: #686158;
+  --accent: #f0eadf;
+  --accent-foreground: #180f0c;
   --destructive: #d4183d;
   --destructive-foreground: #ffffff;
-  --border: rgba(0, 0, 0, 0.1);
+  --border: rgba(24, 15, 12, 0.16);
   --input: transparent;
-  --input-background: #f3f3f5;
-  --switch-background: #cbced4;
+  --input-background: #fffaf1;
+  --switch-background: #d4ccb9;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --ring: oklch(0.708 0 0);
+  --ring: rgba(18, 63, 50, 0.45);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.625rem;
+  --radius: 1.125rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: #030213;
@@ -42,25 +44,26 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  --background: #050806;
+  --foreground: #f7f1e5;
+  --card: #090d0a;
+  --card-foreground: #f7f1e5;
+  --popover: #090d0a;
+  --popover-foreground: #f7f1e5;
+  --primary: #f7f1e5;
+  --primary-foreground: #09120e;
+  --secondary: #171d18;
+  --secondary-foreground: #f7f1e5;
+  --muted: #171d18;
+  --muted-foreground: #aaa294;
+  --accent: #18231d;
+  --accent-foreground: #f7f1e5;
   --destructive: oklch(0.396 0.141 25.723);
   --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
+  --border: rgba(247, 241, 229, 0.14);
+  --input: rgba(247, 241, 229, 0.08);
+  --input-background: rgba(247, 241, 229, 0.08);
+  --ring: rgba(247, 241, 229, 0.4);
   --font-weight-medium: 500;
   --font-weight-normal: 400;
   --chart-1: oklch(0.488 0.243 264.376);
@@ -79,6 +82,8 @@
 }
 
 @theme inline {
+  --font-sans: var(--font-interface);
+  --font-mono: var(--font-code);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -135,30 +140,37 @@
 
   html {
     font-size: var(--font-size);
+    text-rendering: geometricPrecision;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   h1 {
     font-size: var(--text-2xl);
     font-weight: var(--font-weight-medium);
-    line-height: 1.5;
+    line-height: 1.08;
+    letter-spacing: 0;
   }
 
   h2 {
     font-size: var(--text-xl);
     font-weight: var(--font-weight-medium);
-    line-height: 1.5;
+    line-height: 1.12;
+    letter-spacing: 0;
   }
 
   h3 {
     font-size: var(--text-lg);
     font-weight: var(--font-weight-medium);
-    line-height: 1.5;
+    line-height: 1.2;
+    letter-spacing: 0;
   }
 
   h4 {
     font-size: var(--text-base);
     font-weight: var(--font-weight-medium);
-    line-height: 1.5;
+    line-height: 1.25;
+    letter-spacing: 0;
   }
 
   label {
@@ -179,6 +191,18 @@
     line-height: 1.5;
   }
 
+  body {
+    font-family: var(--font-interface);
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  }
+
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: var(--font-code);
+  }
+
   button,
   a,
   [role="button"],
@@ -195,6 +219,20 @@
   textarea:disabled,
   [aria-disabled="true"] {
     cursor: not-allowed;
+  }
+}
+
+@layer utilities {
+  .font-semibold {
+    font-weight: 560;
+  }
+
+  .font-bold {
+    font-weight: 620;
+  }
+
+  .font-extrabold {
+    font-weight: 680;
   }
 }
 

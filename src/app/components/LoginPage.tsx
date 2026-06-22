@@ -303,17 +303,17 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
                 }}
               >
                 <Info className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                <div className="text-sm">
+                <div className="min-w-0 text-sm">
                   <p className="font-semibold mb-1">
                     {mode === 'relawan' ? 'Akun Demo Relawan:' : 'Akun Demo Moderator:'}
                   </p>
                   <p>
-                    Email: <code className="px-1 rounded" style={{ backgroundColor: `${theme.primary}1A` }}>
+                    Email: <code className="inline-block max-w-full break-all rounded-full px-2 py-0.5" style={{ backgroundColor: `${theme.primary}1A` }}>
                       {mode === 'relawan' ? 'relawan.demo@simrp.app' : 'moderator1.demo@simrp.app'}
                     </code>
                   </p>
                   <p>
-                    Pass: <code className="px-1 rounded" style={{ backgroundColor: `${theme.primary}1A` }}>database/runtime/dev_credentials.txt</code>
+                    Pass: <code className="inline-block max-w-full break-all rounded-full px-2 py-0.5" style={{ backgroundColor: `${theme.primary}1A` }}>database/runtime/dev_credentials.txt</code>
                   </p>
                 </div>
               </div>
@@ -323,7 +323,7 @@ export function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
             <div className="pt-4">
               <button 
                 type="submit"
-                className="w-full font-bold py-4 px-6 rounded-xl shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full font-bold py-4 px-6 rounded-full shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ 
                   backgroundColor: theme.primaryContainer,
                   color: theme.onPrimary,

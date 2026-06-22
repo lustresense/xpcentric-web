@@ -15,6 +15,16 @@ const spring = {
   mass: 0.95,
 } as const;
 
+const mobileSpring = {
+  type: "spring",
+  stiffness: 250,
+  damping: 25,
+} as const;
+
+const mobileDropdownTransition = {
+  duration: 0.15,
+} as const;
+
 const listVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -63,7 +73,7 @@ export function CenteredLogoNav({ onNavigate, onHomeClick }: CenteredLogoNavProp
   return (
     <>
       <AnimatePresence>
-        {open && (
+        {open && !isMobile && (
           <motion.button
             type="button"
             aria-label="Tutup menu"
@@ -79,17 +89,18 @@ export function CenteredLogoNav({ onNavigate, onHomeClick }: CenteredLogoNavProp
 
       <header className="fixed left-0 right-0 top-4 z-50 px-2 sm:px-4">
         <div className="mx-auto flex max-w-6xl justify-center">
+          <div className="relative flex w-full justify-center">
           <motion.nav
             initial={false}
             animate={{
-              width: open ? expandedWidth : collapsedWidth,
-              borderRadius: open ? 24 : 999,
-              paddingTop: open ? 14 : 8,
-              paddingBottom: open ? 14 : 8,
-              paddingLeft: open ? 14 : 12,
-              paddingRight: open ? 14 : 12,
+              width: isMobile ? collapsedWidth : open ? expandedWidth : collapsedWidth,
+              borderRadius: isMobile ? 999 : open ? 24 : 999,
+              paddingTop: isMobile ? 8 : open ? 14 : 8,
+              paddingBottom: isMobile ? 8 : open ? 14 : 8,
+              paddingLeft: isMobile ? 12 : open ? 14 : 12,
+              paddingRight: isMobile ? 12 : open ? 14 : 12,
             }}
-            transition={spring}
+            transition={isMobile ? mobileSpring : spring}
             className="relative border border-white/65 bg-[#f3f6f5]/95 shadow-[0_16px_36px_rgba(12,33,24,0.17)] backdrop-blur-xl"
           >
             <div className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[linear-gradient(130deg,rgba(255,255,255,0.9),rgba(255,255,255,0.58))]" />
@@ -140,33 +151,101 @@ export function CenteredLogoNav({ onNavigate, onHomeClick }: CenteredLogoNavProp
               </button>
             </div>
 
-            <motion.div
-              initial={false}
-              animate={{
-                height: open ? "auto" : 0,
-                opacity: open ? 1 : 0,
-                marginTop: open ? 12 : 0,
-              }}
-              transition={{
-                height: spring,
-                opacity: { duration: 0.16 },
-                marginTop: { duration: 0.2 },
-              }}
-              style={{ overflow: "hidden" }}
-              className="relative z-10"
-            >
+            {!isMobile && (
               <motion.div
-                variants={listVariants}
-                initial="hidden"
-                animate={open ? "visible" : "hidden"}
-                className="space-y-3"
+                initial={false}
+                animate={{
+                  height: open ? "auto" : 0,
+                  opacity: open ? 1 : 0,
+                  marginTop: open ? 12 : 0,
+                }}
+                transition={{
+                  height: spring,
+                  opacity: { duration: 0.16 },
+                  marginTop: { duration: 0.2 },
+                }}
+                style={{ overflow: "hidden" }}
+                className="relative z-10"
               >
-                <motion.nav variants={listVariants} className={isMobile ? "grid gap-2" : "flex flex-wrap items-center gap-2"}>
+                <motion.div
+                  variants={listVariants}
+                  initial="hidden"
+                  animate={open ? "visible" : "hidden"}
+                  className="space-y-3"
+                >
+                  <motion.nav variants={listVariants} className="flex flex-wrap items-center gap-2">
+                    <motion.button
+                      variants={itemVariants}
+                      type="button"
+                      onClick={() => go("login")}
+                      className="rounded-xl border border-[#d7e1db] bg-white px-4 py-2 text-sm font-medium text-[#1b2f25] transition hover:border-[#8fb7a7]"
+                    >
+                      Masuk
+                    </motion.button>
+                    <motion.button
+                      variants={itemVariants}
+                      type="button"
+                      onClick={() => go("about")}
+                      className="rounded-xl border border-[#d7e1db] bg-white px-4 py-2 text-sm font-medium text-[#1b2f25] transition hover:border-[#8fb7a7]"
+                    >
+                      About
+                    </motion.button>
+                    <motion.button
+                      variants={itemVariants}
+                      type="button"
+                      onClick={() => go("faq")}
+                      className="rounded-xl border border-[#d7e1db] bg-white px-4 py-2 text-sm font-medium text-[#1b2f25] transition hover:border-[#8fb7a7]"
+                    >
+                      FAQ
+                    </motion.button>
+                  </motion.nav>
+
+                  <motion.div variants={listVariants} className="flex flex-wrap items-center gap-2">
+                    <motion.button
+                      variants={itemVariants}
+                      type="button"
+                      onClick={() => go("login")}
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#FBBF24] px-4 py-2 text-sm font-semibold text-[#182117] transition hover:brightness-105"
+                    >
+                      Jadi Relawan
+                      <ArrowRight className="h-4 w-4" />
+                    </motion.button>
+                    <motion.button
+                      variants={itemVariants}
+                      type="button"
+                      onClick={() => go("collaboration")}
+                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#d7e1db] bg-white px-4 py-2 text-sm font-medium text-[#1b2f25] transition hover:border-[#8fb7a7]"
+                    >
+                      Jadi Mitra
+                      <ArrowRight className="h-4 w-4" />
+                    </motion.button>
+                  </motion.div>
+                </motion.div>
+              </motion.div>
+            )}
+          </motion.nav>
+
+          <AnimatePresence>
+            {open && isMobile && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={mobileDropdownTransition}
+                className="absolute left-2 right-2 top-full mt-3 overflow-hidden rounded-2xl border border-[#d7e1db] bg-white/95 shadow-xl backdrop-blur-xl"
+              >
+                <motion.div
+                  variants={listVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="hidden"
+                  className="space-y-2 p-2"
+                >
                   <motion.button
                     variants={itemVariants}
                     type="button"
                     onClick={() => go("login")}
-                    className="rounded-xl border border-[#d7e1db] bg-white px-4 py-2 text-sm font-medium text-[#1b2f25] transition hover:border-[#8fb7a7]"
+                    className="flex w-full items-center rounded-xl px-4 py-3 text-sm font-semibold text-[#1b2f25] transition hover:bg-[#eff5f1]"
                   >
                     Masuk
                   </motion.button>
@@ -174,7 +253,7 @@ export function CenteredLogoNav({ onNavigate, onHomeClick }: CenteredLogoNavProp
                     variants={itemVariants}
                     type="button"
                     onClick={() => go("about")}
-                    className="rounded-xl border border-[#d7e1db] bg-white px-4 py-2 text-sm font-medium text-[#1b2f25] transition hover:border-[#8fb7a7]"
+                    className="flex w-full items-center rounded-xl px-4 py-3 text-sm font-semibold text-[#1b2f25] transition hover:bg-[#eff5f1]"
                   >
                     About
                   </motion.button>
@@ -182,38 +261,35 @@ export function CenteredLogoNav({ onNavigate, onHomeClick }: CenteredLogoNavProp
                     variants={itemVariants}
                     type="button"
                     onClick={() => go("faq")}
-                    className="rounded-xl border border-[#d7e1db] bg-white px-4 py-2 text-sm font-medium text-[#1b2f25] transition hover:border-[#8fb7a7]"
+                    className="flex w-full items-center rounded-xl px-4 py-3 text-sm font-semibold text-[#1b2f25] transition hover:bg-[#eff5f1]"
                   >
                     FAQ
                   </motion.button>
-                </motion.nav>
-
-                <motion.div
-                  variants={listVariants}
-                  className={isMobile ? "grid grid-cols-1 gap-2" : "flex flex-wrap items-center gap-2"}
-                >
-                  <motion.button
-                    variants={itemVariants}
-                    type="button"
-                    onClick={() => go("login")}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#FBBF24] px-4 py-2 text-sm font-semibold text-[#182117] transition hover:brightness-105"
-                  >
-                    Jadi Relawan
-                    <ArrowRight className="h-4 w-4" />
-                  </motion.button>
-                  <motion.button
-                    variants={itemVariants}
-                    type="button"
-                    onClick={() => go("collaboration")}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#d7e1db] bg-white px-4 py-2 text-sm font-medium text-[#1b2f25] transition hover:border-[#8fb7a7]"
-                  >
-                    Jadi Mitra
-                    <ArrowRight className="h-4 w-4" />
-                  </motion.button>
+                  <div className="grid gap-2 border-t border-[#d7e1db] p-2">
+                    <motion.button
+                      variants={itemVariants}
+                      type="button"
+                      onClick={() => go("login")}
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#FBBF24] px-4 py-3 text-sm font-semibold text-[#182117] transition hover:brightness-105"
+                    >
+                      Jadi Relawan
+                      <ArrowRight className="h-4 w-4" />
+                    </motion.button>
+                    <motion.button
+                      variants={itemVariants}
+                      type="button"
+                      onClick={() => go("collaboration")}
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#d7e1db] bg-white px-4 py-3 text-sm font-semibold text-[#1b2f25] transition hover:bg-[#eff5f1]"
+                    >
+                      Jadi Mitra
+                      <ArrowRight className="h-4 w-4" />
+                    </motion.button>
+                  </div>
                 </motion.div>
               </motion.div>
-            </motion.div>
-          </motion.nav>
+            )}
+          </AnimatePresence>
+          </div>
         </div>
       </header>
     </>

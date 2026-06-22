@@ -1,6 +1,6 @@
-/* Google Fonts - Inter for modern, clean look */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* Neo-grotesk interface font inspired by modern robotics/product sites. */
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap');
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Geist', Arial, Helvetica, sans-serif;
 }
