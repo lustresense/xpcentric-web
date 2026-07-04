@@ -2,167 +2,160 @@
 
 **Sistem Informasi Manajemen Relawan Kampung Pancasila**
 
-SIMREKAP adalah prototype aplikasi web untuk mengelola relawan, kegiatan kampung, laporan partisipasi, XP, sertifikat digital, voucher transportasi, notifikasi, kolaborasi mitra, dan approval akses petugas. Proyek ini dikembangkan sebagai bahan Kerja Praktik oleh Farchan Deano untuk kebutuhan demo, evaluasi, dan dokumentasi teknis.
+SIMREKAP adalah prototype aplikasi web untuk mengelola relawan, kegiatan kampung, laporan partisipasi, XP, sertifikat digital, voucher transportasi, kolaborasi mitra, notifikasi, dan approval akses petugas. Repository ini disiapkan sebagai paket serah-terima teknis untuk kebutuhan Kerja Praktik, demo, evaluasi, dan pengembangan lanjutan oleh tim teknis.
 
-Repository aktif: `lustresense/xpcentric-web` branch `main`.
+Repository aktif:
 
-> Catatan nama teknis: beberapa environment variable dan API prefix masih memakai nama historis `SIMRP` untuk menjaga kompatibilitas runtime. Nama produk dan dokumentasi publik menggunakan SIMREKAP.
+```text
+GitHub: lustresense/xpcentric-web
+Branch: main
+```
+
+Catatan kompatibilitas: beberapa environment variable dan API prefix masih memakai nama historis `SIMRP` agar runtime lama tidak rusak. Nama produk, dokumen, dan konteks serah-terima memakai **SIMREKAP**.
 
 ## Daftar Isi
 
-- [Gambaran Produk](#gambaran-produk)
+- [Gambaran Sistem](#gambaran-sistem)
+- [Stakeholder dan Role](#stakeholder-dan-role)
 - [Fitur Utama](#fitur-utama)
-- [Alur Sistem](#alur-sistem)
-- [Arsitektur](#arsitektur)
-- [Tech Stack](#tech-stack)
-- [Menjalankan Lokal](#menjalankan-lokal)
-- [Menjalankan dengan Docker](#menjalankan-dengan-docker)
-- [Demo Accounts](#demo-accounts)
-- [Environment Variable](#environment-variable)
-- [API Ringkas](#api-ringkas)
-- [Struktur Folder](#struktur-folder)
+- [Alur Bisnis](#alur-bisnis)
+- [Arsitektur Teknis](#arsitektur-teknis)
+- [Quick Start Lokal](#quick-start-lokal)
+- [Docker Demo Runtime](#docker-demo-runtime)
+- [Akun Demo dan Database Sample](#akun-demo-dan-database-sample)
+- [Environment Variable Utama](#environment-variable-utama)
+- [Struktur Repository](#struktur-repository)
 - [Validasi](#validasi)
-- [Dokumentasi Tambahan](#dokumentasi-tambahan)
-- [Status Produksi](#status-produksi)
+- [Dokumentasi Serah-Terima](#dokumentasi-serah-terima)
+- [Batas Prototype dan Roadmap Produksi](#batas-prototype-dan-roadmap-produksi)
 
-## Gambaran Produk
+## Gambaran Sistem
 
-SIMREKAP menyimulasikan sistem administrasi partisipasi warga Surabaya pada program kampung. Relawan dapat mendaftar kegiatan, hadir, mengirim laporan, memperoleh XP, melihat leaderboard, mendapat sertifikat, dan menukar XP menjadi voucher transportasi. KSH dan ASN/moderator mengelola kegiatan serta memverifikasi laporan sesuai kewenangan wilayah. Admin mengawasi data pengguna, event, laporan, pengajuan akses, role, dan penyesuaian sementara.
+SIMREKAP dibuat untuk mensimulasikan proses digitalisasi partisipasi warga pada program Kampung Pancasila. Sistem ini memusatkan data kegiatan, relawan, laporan, verifikasi, apresiasi, dan kolaborasi agar proses administrasi tidak bergantung pada pencatatan manual.
 
-Target penggunaan saat ini:
+Tujuan utama:
 
-- Demo Kerja Praktik.
-- Presentasi prototype ke kampus dan pemangku kepentingan.
-- Basis teknis untuk pengembangan lanjutan.
-- Simulasi alur operasional relawan, KSH, ASN, dan admin.
+1. Mempermudah relawan menemukan dan mengikuti kegiatan kampung.
+2. Memudahkan KSH/ASN melakukan pengelolaan kegiatan dan validasi laporan.
+3. Menyediakan rekap kontribusi dalam bentuk XP, leaderboard, sertifikat, dan voucher demo.
+4. Menyediakan dashboard admin untuk melihat data, mengelola akses, dan melakukan kontrol operasional.
+5. Menjadi baseline prototype yang bisa dipahami, dijalankan, dan dikembangkan ulang oleh tim IT.
+
+## Stakeholder dan Role
+
+| Stakeholder | Role sistem | Kewenangan utama |
+|---|---|---|
+| Warga/Relawan | `user` | Register, join event, submit laporan, melihat XP, sertifikat, reward |
+| KSH | `ksh` | Menjalankan flow relawan dan membantu attendance/complete event |
+| ASN pembuat kegiatan | `moderator_t1` | Membuat draft event sesuai scope wilayah |
+| Lurah/Camat | `moderator_t2` | Approve/publish event dan verify/reject laporan sesuai scope |
+| Moderator lanjutan | `moderator_t3` | Role perluasan prototype untuk kebutuhan lanjutan |
+| Admin | `admin` | Mengelola database, access request, role, audit, dan dashboard admin |
+| Mitra | public form | Mengajukan dukungan dana/konsumsi/peralatan/media/lainnya |
+
+Register publik selalu menghasilkan role awal `user`. KSH dan moderator tidak bisa aktif otomatis; akses tersebut harus diajukan melalui Portal Akses Petugas dan disetujui admin.
 
 ## Fitur Utama
 
-| Area | Fitur |
+| Domain | Fitur |
 |---|---|
 | Auth | Register relawan, login user/moderator, login admin, session token, logout |
-| Role | Relawan, KSH, Moderator T1, Moderator T2 Lurah/Camat, Moderator T3, Admin |
-| Access Portal | Halaman `/access` untuk pengajuan akses KSH/moderator melalui approval admin |
+| OTP | Fondasi OTP provider-ready, mode development untuk demo |
+| Access Portal | `/access` untuk pengajuan KSH/moderator dan review admin |
 | Event | Draft, approval, publish, join, attendance, complete |
-| Laporan | Submit laporan, under review, verify/reject, alasan penolakan |
+| Report | Submit laporan, under review, verify/reject, alasan penolakan |
 | XP | XP user, XP kelurahan, XP empat pilar, leaderboard |
-| Sertifikat | Record sertifikat, preview, download HTML siap print/PDF, public verify |
-| Reward | Katalog voucher GoBis/Suroboyo Bus, redeem server-side, stok dan XP aman |
-| Admin | Database-style dashboard, filter/search/sort, queue pengajuan akses, kontrol role |
-| Notifikasi | Unread count, list notifikasi, mark read, shared hook desktop/mobile |
+| Certificate | Preview, download HTML siap print/PDF, public verify |
+| Reward | Voucher GoBis/Suroboyo Bus sebagai simulasi redeem XP |
+| Collaboration | Public partner request dan approval/reject oleh petugas |
+| Notification | Unread count, daftar notifikasi, mark read |
 | Audit | Audit log untuk aksi penting admin/moderator |
-| Docker | Image GHCR `ghcr.io/lustresense/simrekap:api-demo` dan `web-demo` |
+| Docker | Runtime demo `web` + `api` memakai SQLite volume |
 
-## Alur Sistem
+## Alur Bisnis
 
-### Role dan Akses
-
-Register publik selalu membuat akun relawan. Role KSH atau moderator tidak aktif otomatis. User harus mengajukan akses melalui `/access`, lalu admin menyetujui atau menolak request tersebut.
+### Role Approval
 
 ```mermaid
 flowchart LR
-    A[Daftar akun publik] --> B[Role awal: Relawan]
-    B --> C[Buka /access]
-    C --> D[Ajukan KSH atau Moderator]
+    A[User daftar publik] --> B[Role awal: Relawan]
+    B --> C[Buka Portal Akses /access]
+    C --> D[Ajukan akses KSH atau moderator]
     D --> E[Admin review queue]
-    E -->|Approve| F[Role user diupdate server-side]
-    E -->|Reject| G[Status request ditolak]
-    F --> H[User refresh atau login ulang]
+    E -->|Approve| F[Role dan scope diupdate server-side]
+    E -->|Reject| G[Request ditolak dengan catatan]
+    F --> H[User refresh/login ulang]
     H --> I[Dashboard berubah sesuai role]
 ```
 
-### Event dan Laporan
+### Event, Laporan, XP, Sertifikat
 
 ```mermaid
 flowchart TD
-    A[Moderator/Admin buat event draft] --> B[Approval Lurah/Camat/Admin]
+    A[Moderator T1/Admin buat draft event] --> B[Moderator T2/Admin approve]
     B --> C[Publish event]
     C --> D[Relawan join]
-    D --> E[KSH tandai hadir]
+    D --> E[KSH tandai attendance]
     E --> F[KSH complete event]
     F --> G[Relawan submit laporan]
-    G --> H[Moderator/Admin review]
-    H -->|Verified| I[XP, sertifikat, notifikasi]
-    H -->|Rejected| J[Alasan penolakan dan notifikasi]
+    G --> H[Moderator T2/Admin review]
+    H -->|Verified| I[XP dihitung]
+    I --> J[Sertifikat dibuat]
+    J --> K[Notifikasi dan audit log]
+    H -->|Rejected| L[Alasan penolakan dan notifikasi]
 ```
 
-### Deployment Docker Demo
+### Docker Demo
 
 ```mermaid
 flowchart LR
-    U[Browser / HP] --> W[Nginx web container :7761]
-    W -->|SPA static dist| F[React app]
-    W -->|/make-server-32aa5c5c| A[Python API container :8000]
+    U[Browser/HP] --> W[Nginx web container :7761]
+    W -->|Static SPA| F[React dist]
+    W -->|/make-server-32aa5c5c| A[Python API :8000]
     A --> D[(SQLite volume /data/simrekap)]
     T[Cloudflare Quick Tunnel] --> W
 ```
 
-## Arsitektur
-
-Backend berjalan dengan Python standard library `ThreadingHTTPServer`. `server/main.py` hanya menjadi entry point, konfigurasi, session, dependency wiring, CORS/security headers, dan dispatch ke modul API. Business logic endpoint berada di `server/api/*`; schema/migration/seed berada di `server/db/*`; helper runtime berada di `server/services/*`.
-
-Frontend memakai React + Vite dengan router berbasis state di `src/app/App.tsx`. Dashboard besar sudah dipisah menjadi modul domain agar mudah dibaca dan diubah.
+## Arsitektur Teknis
 
 ```mermaid
 flowchart TB
-    subgraph Frontend[React + Vite]
+    subgraph FE[Frontend React + Vite]
         App[src/app/App.tsx]
-        Components[src/app/components]
-        APIClient[src/lib/api.ts]
+        Components[Dashboard dan page components]
+        ApiClient[src/lib/api.ts]
     end
 
-    subgraph Backend[Python HTTP Server]
+    subgraph BE[Backend Python HTTP Server]
         Main[server/main.py]
         Api[server/api/*]
         Services[server/services/*]
-        DBLayer[server/db/*]
+        DbLayer[server/db/*]
     end
 
-    subgraph Storage[SQLite Runtime]
-        SQLite[(database.db)]
+    subgraph Data[SQLite Runtime]
+        DB[(database.db)]
     end
 
     App --> Components
-    Components --> APIClient
-    APIClient --> Main
+    Components --> ApiClient
+    ApiClient --> Main
     Main --> Api
     Api --> Services
-    Api --> DBLayer
-    DBLayer --> SQLite
-    Services --> SQLite
+    Api --> DbLayer
+    DbLayer --> DB
+    Services --> DB
 ```
 
-## Tech Stack
+Frontend memakai React 18, Vite, Tailwind utility classes, Radix UI primitives, Lucide icons, Recharts, Sonner, dan Motion. Backend memakai Python standard library `ThreadingHTTPServer`, SQLite, PBKDF2-HMAC-SHA256, session token server-side, modul API per domain, dan service helper terpisah.
 
-Frontend:
+## Quick Start Lokal
 
-- React 18
-- Vite 6
-- TypeScript/TSX
-- Tailwind CSS utility classes
-- Radix UI primitives
-- Lucide React icons
-- Recharts
-- Sonner
-- Motion
+Prasyarat:
 
-Backend:
-
-- Python 3.11 compatible
-- `http.server.ThreadingHTTPServer`
-- `sqlite3`
-- PBKDF2-HMAC-SHA256 password hashing
-- Bearer session token stored server-side
-- Modular API handlers
-
-Runtime:
-
-- SQLite for prototype/KP/demo
-- Docker Compose two-service deployment
-- Nginx web container proxying API prefix to backend container
-- Optional Cloudflare Quick Tunnel for phone/external demo access
-
-## Menjalankan Lokal
+- Node.js 20 atau versi LTS kompatibel.
+- Python 3.11+.
+- Git.
 
 Install dependency:
 
@@ -170,7 +163,7 @@ Install dependency:
 npm install
 ```
 
-Jalankan frontend dan backend lokal:
+Jalankan backend dan frontend lokal:
 
 ```bash
 npm run dev
@@ -185,39 +178,28 @@ Access:   http://localhost:5173/access
 Backend:  http://127.0.0.1:8000/make-server-32aa5c5c
 ```
 
-Perintah lain:
+Perintah penting:
 
 ```bash
 npm run api       # backend saja
-npm run dev:web   # frontend Vite saja
+npm run dev:web   # frontend saja
 npm run build     # build frontend
 npm run smoke     # smoke test backend
 ```
 
-Jika credential demo tidak disediakan lewat env, backend development membuat credential lokal di:
+## Docker Demo Runtime
 
-```text
-database/runtime/dev_credentials.txt
-```
+Repository menyediakan compose dua service:
 
-File tersebut di-ignore dan tidak boleh di-commit.
+- `api`: Python backend.
+- `web`: Nginx yang serve frontend `dist` dan proxy API prefix ke service `api`.
 
-## Menjalankan dengan Docker
-
-Compose default memakai port host `7761`.
+Jalankan:
 
 ```bash
 docker compose pull
 docker compose up -d
 curl http://localhost:7761/make-server-32aa5c5c/health
-```
-
-URL demo:
-
-```text
-Web:   http://localhost:7761
-Admin: http://localhost:7761/admin
-API:   http://localhost:7761/make-server-32aa5c5c
 ```
 
 Image GHCR:
@@ -227,121 +209,77 @@ ghcr.io/lustresense/simrekap:api-demo
 ghcr.io/lustresense/simrekap:web-demo
 ```
 
-Data SQLite persisten di volume Docker:
+Port demo:
 
 ```text
-/data/simrekap/database.db
-/data/simrekap/dev_credentials.txt
+http://localhost:7761
 ```
 
-Runbook server lengkap ada di [docs/SERVER_DOCKER_RUNBOOK.md](docs/SERVER_DOCKER_RUNBOOK.md).
+Runbook lengkap ada di [docs/SERVER_DOCKER_RUNBOOK.md](docs/SERVER_DOCKER_RUNBOOK.md).
 
-## Demo Accounts
+## Akun Demo dan Database Sample
 
-Jika `SIMRP_ENABLE_DEMO_SEED=true`, sistem membuat akun demo:
-
-| Nama | Email | Role |
-|---|---|---|
-| Andi Relawan | `relawan.demo@simrp.app` | Relawan |
-| Nia Relawan | `relawan2.demo@simrp.app` | Relawan |
-| Budi Relawan | `relawan3.demo@simrp.app` | Relawan |
-| Kak Esa | `ksh.demo@simrp.app` | KSH |
-| Pak Raka ASN | `moderator1.demo@simrp.app` | Moderator T1 |
-| Bu Sinta Lurah | `moderator2.demo@simrp.app` | Moderator T2 Lurah |
-| Pak Dimas Camat | `moderator2.camat@simrp.app` | Moderator T2 Camat |
-| Pak Arif | `moderator3.demo@simrp.app` | Moderator T3 |
-| Administrator | `admin@simrp.local` | Admin |
-
-Password demo berasal dari `SIMRP_DEMO_PASSWORD` atau credential development yang dibuat otomatis.
-
-Admin portal:
+Runtime database asli tidak di-commit karena dapat berisi session, hash password, credential state, dan data operasional. Sebagai pengganti aman, repository menyediakan:
 
 ```text
-URL: /admin
-Username: SIMRP_ADMIN_LOGIN_USERNAME
-Password: SIMRP_ADMIN_LOGIN_PASSWORD
+database/sample/simrekap_demo.sqlite
+database/sample/README.md
+database/schema/simrekap_schema.sql
+database/schema/simrekap_seed_reference.md
 ```
 
-## Environment Variable
+Sample DB dibuat ulang dari seed bersih, bukan copy database runtime lokal. Password di sample DB adalah credential demo serah-terima, bukan credential pribadi:
+
+```text
+User demo password:  SIMREKAP-Demo-2026!
+Admin seed password: SIMREKAP-Admin-Demo-2026!
+```
+
+Untuk runtime resmi, tim pengembang wajib mengganti password melalui environment variable dan membuat database baru atau melakukan migrasi sesuai kebutuhan.
+
+Detail akun dan skenario demo ada di [docs/DEMO_ACCOUNTS.md](docs/DEMO_ACCOUNTS.md).
+
+## Environment Variable Utama
 
 | Env | Fungsi |
 |---|---|
-| `SIMRP_ENV` | `development` atau `production` |
+| `SIMRP_ENV` | Mode `development` atau `production` |
 | `SIMRP_HOST` | Host backend |
 | `SIMRP_PORT` | Port backend |
 | `SIMRP_DB_PATH` | Path SQLite runtime |
-| `SIMRP_ENABLE_DEMO_SEED` | Seed akun dan data demo |
+| `SIMRP_ENABLE_DEMO_SEED` | Mengaktifkan seed demo |
 | `SIMRP_DEMO_PASSWORD` | Password akun demo |
 | `SIMRP_ADMIN_LOGIN_USERNAME` | Username portal admin |
 | `SIMRP_ADMIN_LOGIN_PASSWORD` | Password portal admin |
 | `SIMRP_SEED_ADMIN_PASSWORD` | Password akun admin bootstrap |
 | `SIMRP_ALLOWED_ORIGINS` | CORS allowlist production |
-| `SIMRP_PBKDF2_ITERATIONS` | Iterasi hash password |
+| `SIMRP_PBKDF2_ITERATIONS` | Iterasi PBKDF2 |
 | `SIMRP_SESSION_TTL_HOURS` | Masa aktif session |
-| `SIMRP_RATE_LIMIT_WINDOW_SECONDS` | Window rate limit |
-| `SIMRP_RATE_LIMIT_AUTH_MAX` | Limit request auth |
-| `SIMRP_RATE_LIMIT_MUTATION_MAX` | Limit request mutasi |
-| `SIMRP_MAX_BODY_BYTES` | Batas body request |
+| `SIMRP_OTP_PROVIDER` | `disabled` atau `dev` pada prototype |
+| `SIMRP_OTP_REQUIRE_VERIFICATION` | Wajib OTP saat signup jika diaktifkan |
 | `VITE_API_BASE_URL` | Override API base URL frontend |
 
-Untuk Docker demo, frontend production memakai same-origin API path `/make-server-32aa5c5c`, sehingga tidak perlu mengubah domain API ketika dibuka lewat tunnel.
-
-## API Ringkas
-
-Base path:
-
-```text
-/make-server-32aa5c5c
-```
-
-| Area | Endpoint |
-|---|---|
-| Health | `GET /health` |
-| Auth | `POST /auth/signup`, `POST /auth/login`, `POST /auth/admin-login`, `GET /auth/me`, `POST/DELETE /auth/logout` |
-| Users | `GET /users`, `PUT /users/{id}`, `GET /users/me/participations` |
-| Events | `GET/POST /events`, `PUT /events/{id}`, `POST /events/{id}/approval`, `POST /events/{id}/publish`, `POST /events/{id}/join`, `POST /events/{id}/attendance`, `POST /events/{id}/complete` |
-| Reports | `GET/POST /reports`, `POST /reports/{id}/review`, `POST /reports/{id}/verify` |
-| Access | `POST /access-requests`, `GET /access-requests/me`, `GET /admin/access-requests`, `POST /admin/access-requests/{id}/review` |
-| Collaboration | `GET/POST /collaboration-requests`, `POST /collaboration-requests/{id}/approval` |
-| Notifications | `GET /notifications`, `GET /notifications/count`, `POST /notifications/{id}/read` |
-| Certificates | `GET /certificates`, `GET /certificates/{id}/verify`, `GET /certificates/{id}/download` |
-| Rewards | `GET /rewards/catalog`, `POST /rewards/redeem` |
-| Geographic | `GET /geo/options`, `GET /geo/stats`, `GET /kodepos/{code}`, `GET /kampung`, `GET /kampung/{id}/pillars` |
-| Landing | `GET /landing/leaderboard` |
-
-Referensi lengkap ada di [docs/API_REFERENCE.md](docs/API_REFERENCE.md).
-
-## Struktur Folder
+## Struktur Repository
 
 ```text
 server/
   main.py                  Entry point HTTP server dan dispatch API
   api/                     Endpoint aktif per domain
-  core/                    Config, database/security compatibility, pure utils
-  db/                      SQLite schema, migration, seed
-  services/                Session, password hash, audit, notification, XP, rate limiter
+  core/                    Config dan helper dasar
+  db/                      Schema, migration, seed
+  services/                Session, password, audit, notification, XP, rate limiter
   legacy/                  Kode lama yang tidak dipakai runtime aktif
 
 src/
   app/App.tsx              SPA shell dan routing berbasis state
   app/components/          Halaman, dashboard, UI modules
-  app/components/admin/    Admin dashboard modules
-  app/components/user/     User dashboard modules
-  app/components/moderator/ Moderator dashboard modules
-  data/                    Geographic data, leveling, badges
+  data/                    Geographic data, leveling, badge
   lib/api.ts               Centralized API client
   types/index.ts           Type definitions payload aktif
 
 docs/
-  API_REFERENCE.md
-  ARCHITECTURE.md
-  DEPLOYMENT.md
-  SERVER_DOCKER_RUNBOOK.md
-  PRODUCTION_READINESS.md
-  PRODUCTION_GAP_ROADMAP.md
-  PRIVACY_AND_DATA_GOVERNANCE.md
-  OPERATIONS_RUNBOOK.md
-  MAINTAINER_GUIDE.md
+  README.md                Index dokumentasi
+  handover/                Dokumen analisis, use case, prosedur, checklist
 ```
 
 ## Validasi
@@ -364,48 +302,41 @@ Smoke test:
 npm run smoke
 ```
 
-Git whitespace check:
+Whitespace check:
 
 ```bash
 git diff --check
 ```
 
-Docker:
+## Dokumentasi Serah-Terima
 
-```bash
-docker compose build
-docker compose up -d
-curl http://localhost:7761/make-server-32aa5c5c/health
-```
-
-## Dokumentasi Tambahan
-
-| Dokumen | Isi |
+| Dokumen | Tujuan |
 |---|---|
-| [docs/README.md](docs/README.md) | Index dokumentasi |
+| [docs/README.md](docs/README.md) | Index dokumentasi teknis |
+| [docs/handover/SYSTEM_ANALYSIS.md](docs/handover/SYSTEM_ANALYSIS.md) | Analisis kebutuhan dan boundary sistem |
+| [docs/handover/USE_CASES.md](docs/handover/USE_CASES.md) | Use case per aktor |
+| [docs/handover/DEVELOPMENT_PROCEDURE.md](docs/handover/DEVELOPMENT_PROCEDURE.md) | Prosedur pengembangan profesional |
+| [docs/handover/SECURITY_RATIONALE.md](docs/handover/SECURITY_RATIONALE.md) | Rationale keputusan keamanan |
+| [docs/handover/HANDOVER_CHECKLIST.md](docs/handover/HANDOVER_CHECKLIST.md) | Checklist serah-terima |
+| [docs/DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) | ERD dan data dictionary |
+| [docs/DATABASE_MIGRATION_NOTES.md](docs/DATABASE_MIGRATION_NOTES.md) | Catatan migrasi database |
+| [docs/API_REFERENCE.md](docs/API_REFERENCE.md) | Referensi endpoint |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Arsitektur teknis |
-| [docs/API_REFERENCE.md](docs/API_REFERENCE.md) | Endpoint API |
-| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Deployment umum |
-| [docs/SERVER_DOCKER_RUNBOOK.md](docs/SERVER_DOCKER_RUNBOOK.md) | Langkah Docker server dan tunnel |
-| [docs/DEMO_ACCOUNTS.md](docs/DEMO_ACCOUNTS.md) | Akun dan skenario demo |
 | [docs/PRODUCTION_READINESS.md](docs/PRODUCTION_READINESS.md) | Status kesiapan produksi |
-| [docs/PRODUCTION_GAP_ROADMAP.md](docs/PRODUCTION_GAP_ROADMAP.md) | Gap menuju produksi publik |
-| [SECURITY.md](SECURITY.md) | Kebijakan keamanan repository |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Panduan kontribusi |
-| [CHANGELOG.md](CHANGELOG.md) | Riwayat perubahan |
+| [docs/PRODUCTION_GAP_ROADMAP.md](docs/PRODUCTION_GAP_ROADMAP.md) | Roadmap gap produksi |
 
-## Status Produksi
+## Batas Prototype dan Roadmap Produksi
 
-SIMREKAP saat ini siap untuk demo prototype dan evaluasi teknis. Untuk penggunaan publik warga Surabaya skala besar, gap berikut tetap perlu diselesaikan sebelum klaim produksi penuh:
+SIMREKAP siap untuk demo dan evaluasi teknis. Untuk penggunaan publik skala warga, tim lanjutan perlu menutup beberapa gap:
 
-- OTP/SMS resmi atau identity verification resmi.
-- Monitoring, logging, backup, restore drill, dan alerting operasional.
-- Database server managed jika beban melebihi batas aman SQLite.
-- Review legal, privacy, dan data retention.
+- Identity verification resmi atau OTP provider produksi.
+- Monitoring, log retention, backup, restore drill, dan alerting.
+- Database server managed bila beban melebihi batas SQLite.
+- Review legal/privacy/data retention.
 - Integrasi resmi GoBis jika voucher menjadi transaksi nyata.
-- Sertifikat dengan tanda tangan digital/legal formal jika diperlukan.
+- Sertifikat dengan tanda tangan digital/legal formal jika dibutuhkan.
 
-Detail gap ada di [docs/PRODUCTION_GAP_ROADMAP.md](docs/PRODUCTION_GAP_ROADMAP.md).
+Detail ada di [docs/PRODUCTION_GAP_ROADMAP.md](docs/PRODUCTION_GAP_ROADMAP.md).
 
 ## Lisensi
 

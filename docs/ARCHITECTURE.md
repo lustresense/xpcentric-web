@@ -1,94 +1,158 @@
 # Architecture
 
-SIMREKAP is a single-page React application backed by a Python stdlib HTTP server and SQLite database.
+SIMREKAP adalah single-page application React yang berkomunikasi dengan backend Python HTTP server melalui API prefix tetap `/make-server-32aa5c5c`.
 
 ## Runtime Overview
 
-```text
-Browser
-  -> React + Vite frontend
-  -> /make-server-32aa5c5c API prefix
-  -> Python ThreadingHTTPServer
-  -> SQLite database
+```mermaid
+flowchart LR
+    Browser[Browser/HP] --> Frontend[React SPA]
+    Frontend --> ApiClient[src/lib/api.ts]
+    ApiClient --> Backend[Python ThreadingHTTPServer]
+    Backend --> Modules[server/api modules]
+    Modules --> Services[server/services helpers]
+    Modules --> DB[(SQLite)]
 ```
 
 ## Frontend
 
-Main entry points:
+Entry point:
 
 - `src/main.tsx`
 - `src/app/App.tsx`
 - `src/lib/api.ts`
 
-Component groups:
+Struktur domain:
 
-- `src/app/components/user/` for relawan/KSH dashboard modules.
-- `src/app/components/moderator/` for ASN/moderator workflows.
-- `src/app/components/admin/` for database-style admin management.
-- `src/app/components/ui/` for reusable UI primitives and navbars.
-- `src/app/components/landing/` for public landing sections.
+- `src/app/components/landing/` untuk landing page.
+- `src/app/components/user/` untuk dashboard relawan/KSH.
+- `src/app/components/moderator/` untuk dashboard moderator.
+- `src/app/components/admin/` untuk dashboard admin.
+- `src/app/components/ui/` untuk reusable UI primitives dan navbar.
 
-The frontend stores the session token in `localStorage` and sends it with the `Authorization: Bearer <token>` header through centralized API helpers.
+Routing menggunakan state di `App.tsx`, bukan React Router. Path publik seperti `/login`, `/register`, `/access`, `/admin`, dan `/app` dipetakan ke page state.
+
+Session token disimpan di `localStorage` dengan key `simrp_auth_token`. Saat app dibuka, frontend memanggil `/auth/me` untuk memvalidasi token dan mengambil role terbaru dari server.
 
 ## Backend
 
-Main runtime:
+Entry point:
 
 - `server/main.py`
 
-Backend responsibilities:
+Tanggung jawab `server/main.py`:
 
-- load environment files;
-- initialize SQLite schema, migrations, and seed data;
-- enforce request body limits, CORS, security headers, and rate limits;
-- resolve bearer token sessions;
-- dispatch requests to active API modules.
+- load `.env.local` dan `.env`;
+- membaca konfigurasi runtime;
+- membuka koneksi SQLite;
+- menjalankan schema, migration, dan seed;
+- memasang CORS, security headers, body limit, rate limit;
+- membaca bearer session token;
+- mendispatch request ke `server/api/*`.
 
-Active API modules:
+Modul API aktif:
 
-- `server/api/auth.py`
-- `server/api/events.py`
-- `server/api/reports.py`
-- `server/api/collaboration.py`
-- `server/api/geographic.py`
-- `server/api/admin.py`
-- `server/api/notifications.py`
-- `server/api/certificates.py`
-- `server/api/rewards.py`
-- `server/api/users.py`
+- `auth.py`
+- `users.py`
+- `events.py`
+- `reports.py`
+- `access_requests.py`
+- `admin.py`
+- `collaboration.py`
+- `notifications.py`
+- `certificates.py`
+- `rewards.py`
+- `geographic.py`
 
-Supporting modules:
+Modul pendukung:
 
 - `server/db/schema.py`
 - `server/db/migrations.py`
 - `server/db/seed.py`
 - `server/services/runtime.py`
 - `server/services/rate_limiter.py`
-- `server/core/config.py`
 - `server/core/utils.py`
+- `server/core/config.py`
+
+## Data Flow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant F as Frontend
+    participant A as API
+    participant D as SQLite
+
+    U->>F: Submit login/register/action
+    F->>A: Request via src/lib/api.ts
+    A->>D: Validate session/RBAC/data
+    D-->>A: Row data
+    A-->>F: JSON response
+    F-->>U: Dashboard state update
+```
 
 ## Main Workflows
 
-Event workflow:
+Event:
 
 ```text
 draft -> approved -> published -> completed
 ```
 
-Report workflow:
+Report:
 
 ```text
 pending -> under_review -> verified/rejected
 ```
 
-Verified reports trigger XP distribution, certificate creation, notifications, and audit logs.
+Access request:
 
-## Data Storage
+```text
+pending -> approved/rejected
+```
 
-SQLite runtime database:
+Verified report triggers:
+
+- XP calculation;
+- `xp_kelurahan` update;
+- `xp_pillar` update;
+- certificate creation;
+- notification;
+- audit log.
+
+## Storage
+
+Runtime SQLite:
 
 ```text
 database/runtime/database.db
 ```
 
-Runtime data is ignored by Git. Use environment variable `SIMRP_DB_PATH` to override the path.
+Sample/reference:
+
+```text
+database/sample/simrekap_demo.sqlite
+database/schema/simrekap_schema.sql
+```
+
+Runtime DB di-ignore karena dapat berisi session dan credential state. Sample DB aman dibuat dari seed bersih.
+
+## Docker Architecture
+
+```mermaid
+flowchart TB
+    subgraph Compose[docker compose]
+        Web[Nginx web service]
+        Api[Python api service]
+        Volume[(simrekap-data volume)]
+    end
+
+    Web -->|proxy /make-server-32aa5c5c| Api
+    Api --> Volume
+```
+
+Port host default:
+
+```text
+7761 -> web:80
+```

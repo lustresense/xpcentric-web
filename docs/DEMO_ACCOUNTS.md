@@ -1,131 +1,121 @@
 # Demo Accounts SIMREKAP
 
-Dokumen ini menjelaskan akun demo yang dibuat oleh seed aktif SIMREKAP. Password nyata tidak ditulis di repo. Untuk development, password dibuat otomatis atau diambil dari environment variable.
+Dokumen ini menjelaskan akun demo, credential policy, dan skenario demo end-to-end.
 
-Last updated: 2026-05-30
+## Kenapa Password Tidak Ditulis Sebagai Secret Runtime
 
-## Ringkasan Credential
-
-SIMREKAP punya dua jalur login:
-
-| Jalur | URL | Identifier | Password |
-|---|---|---|---|
-| Admin portal | `/admin` | `SIMRP_ADMIN_LOGIN_USERNAME` default dev: `admin` | `SIMRP_ADMIN_LOGIN_PASSWORD` atau generated lokal |
-| User/moderator | `/login` | email akun demo | `SIMRP_DEMO_PASSWORD` atau generated lokal |
-
-Jika env password tidak diisi pada development, backend membuat password acak dan menulis catatannya ke:
+Runtime development dapat membuat password acak di:
 
 ```text
 database/runtime/dev_credentials.txt
 ```
 
-File tersebut adalah file lokal dan tidak boleh di-commit.
+File tersebut tidak masuk repository karena termasuk credential lokal. Untuk paket serah-terima, repository menyediakan sample DB sanitized dengan password demo non-pribadi agar tim teknis bisa mencoba sistem tanpa memakai credential lokal pengembang.
 
-## Environment Yang Mengontrol Demo
+Sample DB:
+
+```text
+database/sample/simrekap_demo.sqlite
+```
+
+Credential sample:
+
+```text
+User demo password:  SIMREKAP-Demo-2026!
+Admin seed password: SIMREKAP-Admin-Demo-2026!
+```
+
+Untuk portal admin `/admin`, backend tetap membaca environment:
+
+```text
+SIMRP_ADMIN_LOGIN_USERNAME
+SIMRP_ADMIN_LOGIN_PASSWORD
+```
+
+## Environment Demo
 
 | Env | Fungsi |
 |---|---|
-| `SIMRP_ENABLE_DEMO_SEED` | Mengaktifkan seed akun/event/voucher demo. Default runtime: `true` di development, `false` di production. |
-| `SIMRP_DEMO_PASSWORD` | Password untuk semua akun demo non-admin. Wajib jika demo seed dinyalakan di production. |
-| `SIMRP_ADMIN_LOGIN_USERNAME` | Username untuk halaman `/admin`. Default development: `admin`. |
-| `SIMRP_ADMIN_LOGIN_PASSWORD` | Password portal admin. Jika kosong di development, dibuat otomatis. |
-| `SIMRP_SEED_ADMIN_PASSWORD` | Password akun admin bootstrap `admin@simrp.local`; jika kosong memakai password admin portal. |
+| `SIMRP_ENABLE_DEMO_SEED` | Mengaktifkan akun/event/voucher demo |
+| `SIMRP_DEMO_PASSWORD` | Password akun demo non-admin |
+| `SIMRP_ADMIN_LOGIN_USERNAME` | Username portal admin |
+| `SIMRP_ADMIN_LOGIN_PASSWORD` | Password portal admin |
+| `SIMRP_SEED_ADMIN_PASSWORD` | Password akun admin bootstrap |
 
-Catatan: jika kamu menyalin `.env.example` apa adanya, `SIMRP_ENABLE_DEMO_SEED=false` sehingga akun demo non-admin tidak dibuat. Untuk demo lokal lengkap, set:
+Untuk demo lokal lengkap:
 
 ```env
 SIMRP_ENABLE_DEMO_SEED=true
+SIMRP_DEMO_PASSWORD=SIMREKAP-Demo-2026!
+SIMRP_ADMIN_LOGIN_USERNAME=admin
+SIMRP_ADMIN_LOGIN_PASSWORD=SIMREKAP-Admin-Demo-2026!
+SIMRP_SEED_ADMIN_PASSWORD=SIMREKAP-Admin-Demo-2026!
 ```
 
-## Akun Demo Seed Aktif
+## Akun Demo
 
-| Role | Nama | Email/Login | Wilayah | Fungsi Demo |
+| Role | Nama | Email/Login | Wilayah | Fungsi |
 |---|---|---|---|---|
-| Admin | Administrator | Portal: `admin`; akun DB: `admin@simrp.local` | Keputih | Kelola dashboard admin, kontrol role, data pengguna/event/laporan |
-| Relawan | Andi Relawan | `relawan.demo@simrp.app` | Bulak | Join event, kirim laporan, lihat sertifikat/reward |
-| Relawan | Nia Relawan | `relawan2.demo@simrp.app` | Keputih | Simulasi peserta tambahan |
-| Relawan | Budi Relawan | `relawan3.demo@simrp.app` | Wonorejo | Simulasi peserta tambahan |
-| KSH | Kak Esa | `ksh.demo@simrp.app` | Keputih | Checklist kehadiran dan complete event |
-| ASN Tier 1 | Pak Raka ASN | `moderator1.demo@simrp.app` | Keputih | Membuat draft kegiatan |
-| Lurah / Moderator Tier 2 | Bu Sinta Lurah | `moderator2.demo@simrp.app` | Keputih | Approve/publish event skala kelurahan dan verifikasi laporan wilayah |
-| Camat / Moderator Tier 2 | Pak Dimas Camat | `moderator2.camat@simrp.app` | Kecamatan Keputih | Approve/publish event skala kecamatan dan verifikasi laporan kecamatan |
-| Moderator Tier 3 | Pak Arif | `moderator3.demo@simrp.app` | Keputih | Monitoring agregat/insight prototype |
+| Admin | Administrator | Portal `/admin`: `admin` | Keputih | Kelola dashboard admin |
+| Relawan | Andi Relawan | `relawan.demo@simrp.app` | Bulak | Join event, laporan, sertifikat, reward |
+| Relawan | Nia Relawan | `relawan2.demo@simrp.app` | Keputih | Peserta tambahan |
+| Relawan | Budi Relawan | `relawan3.demo@simrp.app` | Wonorejo | Peserta tambahan |
+| KSH | Kak Esa | `ksh.demo@simrp.app` | Keputih | Attendance dan complete event |
+| Moderator T1 | Pak Raka ASN | `moderator1.demo@simrp.app` | Keputih | Membuat draft event |
+| Moderator T2 Lurah | Bu Sinta Lurah | `moderator2.demo@simrp.app` | Keputih | Approve/publish dan verify wilayah kelurahan |
+| Moderator T2 Camat | Pak Dimas Camat | `moderator2.camat@simrp.app` | Sukolilo/Keputih | Approve/publish dan verify wilayah kecamatan |
+| Moderator T3 | Pak Arif | `moderator3.demo@simrp.app` | Keputih | Role perluasan prototype |
 
-## Data Demo Tambahan
+## Data Demo
 
-Saat demo seed aktif, backend juga membuat:
+- Event: Aksi Bersih Taman Kampung, Pelatihan UMKM Digital, Forum Guyub Warga, Festival Seni Kampung.
+- Kolaborasi: Komunitas Hijau Surabaya, PT Sejahtera Pangan.
+- Voucher: Voucher GoBis Rp 10.000 dan Rp 25.000.
 
-| Data | Isi |
-|---|---|
-| Event | Aksi Bersih Taman Kampung, Pelatihan UMKM Digital, Forum Guyub Warga, Festival Seni Kampung |
-| Kolaborasi mitra | Komunitas Hijau Surabaya, PT Sejahtera Pangan |
-| Voucher reward | Voucher GoBis Rp 10.000 dan Voucher GoBis Rp 25.000 |
-
-Voucher GoBis digunakan sebagai prototype reward transportasi yang bisa ditukarkan melalui aplikasi GoBis untuk akses Suroboyo Bus dan layanan angkutan publik terkait.
-
-## Quick Start Demo
-
-1. Install dependency:
+## Quick Start Demo Lokal
 
 ```bash
 npm install
-```
-
-2. Jalankan frontend dan backend:
-
-```bash
 npm run dev
 ```
 
-3. Buka aplikasi:
+URL:
 
 ```text
 Frontend: http://localhost:5173
 Admin:    http://localhost:5173/admin
+Access:   http://localhost:5173/access
 API:      http://127.0.0.1:8000/make-server-32aa5c5c
 ```
-
-4. Ambil password dari `database/runtime/dev_credentials.txt` jika env password belum diset.
 
 ## Skenario Demo End-to-End
 
 1. Login sebagai `moderator1.demo@simrp.app`, buat draft event.
-2. Login sebagai `moderator2.demo@simrp.app` untuk scope kelurahan atau `moderator2.camat@simrp.app` untuk scope kecamatan, lalu approve dan publish event.
-3. Login sebagai relawan, misalnya `relawan.demo@simrp.app`, lalu join event.
-4. Login sebagai `ksh.demo@simrp.app`, checklist peserta hadir dan complete event.
-5. Login kembali sebagai relawan yang hadir, kirim laporan.
-6. Login sebagai moderator tier 2/admin, review dan verify laporan.
-7. Cek XP, leaderboard, sertifikat digital, notifikasi, dan reward voucher.
+2. Login sebagai `moderator2.demo@simrp.app` atau admin, approve dan publish event.
+3. Login sebagai `relawan.demo@simrp.app`, join event.
+4. Login sebagai `ksh.demo@simrp.app`, tandai attendance dan complete event.
+5. Login kembali sebagai relawan, submit laporan.
+6. Login sebagai moderator T2/admin, review dan verify laporan.
+7. Cek XP, leaderboard, certificate, notification, dan reward voucher.
 
 ## Demo Access Portal Flow
 
-Flow ini dipakai saat demo ingin menunjukkan bahwa relawan bisa mengajukan akses petugas tanpa membuat role moderator aktif sendiri.
-
-1. Daftarkan user umum melalui `/register`. Akun baru selalu menjadi relawan (`user`).
-2. Login sebagai user tersebut melalui `/login`.
+1. Daftar user baru lewat `/register`.
+2. Login sebagai user tersebut.
 3. Buka `/access`.
-4. Pilih role yang diajukan:
-   - `KSH` untuk petugas kelurahan/RW yang membantu attendance.
-   - `Moderator T1` untuk petugas pembuat draft event.
-   - `Moderator T2` untuk lurah/camat reviewer wilayah.
-5. Pilih scope wilayah. KSH wajib kelurahan; moderator mengikuti scope kelurahan/kecamatan yang sudah dipakai event.
-6. Isi jabatan/keterangan dan alasan demo.
-7. Kirim pengajuan. Status awal adalah `pending`.
-8. Login admin melalui `/admin`.
-9. Buka queue Pengajuan Akses di dashboard admin.
-10. Admin approve atau reject request.
-11. User refresh atau login ulang agar `/auth/me` mengambil payload role terbaru.
-12. Jika disetujui, dashboard berubah sesuai role baru: KSH mendapat fitur attendance, moderator masuk dashboard moderator sesuai tier/scope.
+4. Ajukan akses KSH, Moderator T1, atau Moderator T2.
+5. Admin login lewat `/admin`.
+6. Admin membuka queue Pengajuan Akses.
+7. Admin approve/reject.
+8. User refresh/login ulang.
+9. Dashboard berubah sesuai role baru jika request disetujui.
 
-Keputusan produk: `/access` bukan aktivasi moderator langsung. Role KSH/moderator hanya aktif setelah approval admin, dan approval memakai data request yang sudah tersimpan.
+Keputusan produk: `/access` bukan aktivasi moderator langsung. Role aktif hanya berubah setelah admin approval.
 
 ## Production Notes
 
-Sebelum production:
-
-1. Set `SIMRP_ENV=production`.
-2. Set `SIMRP_ADMIN_LOGIN_USERNAME`.
-3. Set `SIMRP_ADMIN_LOGIN_PASSWORD` dengan password kuat.
-4. Biarkan `SIMRP_ENABLE_DEMO_SEED=false` kecuali memang sedang membuat environment demo.
-5. Jika demo seed production dinyalakan, set `SIMRP_DEMO_PASSWORD` dan `SIMRP_SEED_ADMIN_PASSWORD`.
-6. Jangan commit `.env`, `.env.local`, `database/runtime/`, `database/backups/`, atau `dev_credentials.txt`.
+- Jangan memakai credential sample untuk produksi.
+- Matikan `SIMRP_ENABLE_DEMO_SEED` untuk data warga nyata.
+- Gunakan password admin kuat.
+- Rotasi credential setelah demo publik.
+- Jangan commit `database/runtime/` atau `dev_credentials.txt`.

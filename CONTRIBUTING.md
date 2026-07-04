@@ -1,27 +1,35 @@
 # Contributing to SIMREKAP
 
-Panduan ini menjaga repository `lustresense/xpcentric-web` tetap rapi, mudah direview, dan aman untuk demo.
+Panduan ini menjaga repository `lustresense/xpcentric-web` tetap rapi, aman, dan mudah dilanjutkan tim teknis.
 
 ## Branch dan Alur Kerja
 
-- Branch aktif repository adalah `main`.
-- Untuk pekerjaan kecil yang sudah divalidasi, commit bisa langsung diarahkan ke `main` sesuai kebutuhan demo.
-- Untuk pekerjaan besar, gunakan branch pendek dan jelas, misalnya `feat/access-queue`, `fix/admin-contrast`, atau `docs/docker-runbook`.
-- Jangan membuat branch lama seperti `update` sebagai rujukan dokumentasi publik. Semua instruksi repo harus mengarah ke `main`.
+- Branch aktif adalah `main`.
+- Sync dengan remote sebelum mulai kerja:
+
+```bash
+git fetch xpcentric main
+```
+
+- Jangan force-push ke `main`.
+- Untuk perubahan besar, gunakan branch kerja terpisah.
+- Dokumentasi publik tidak boleh merujuk branch lama seperti `update`.
 
 ## Prinsip Perubahan
 
-- Baca file relevan sebelum mengedit.
-- Jaga perubahan tetap kecil dan terukur.
-- Jangan mengubah API prefix `/make-server-32aa5c5c` tanpa rencana migrasi.
-- Jangan mengubah role hierarchy tanpa keputusan produk eksplisit.
-- Jangan menumpuk business logic baru di `server/main.py`.
-- Backend domain baru masuk ke `server/api/*`, schema/migration ke `server/db/*`, helper runtime ke `server/services/*`.
-- Frontend domain besar dipisah ke folder komponen domain, bukan ditumpuk ke `App.tsx`.
+- Baca file relevan sebelum edit.
+- Jaga perubahan kecil dan bisa divalidasi.
+- Jangan ubah API prefix `/make-server-32aa5c5c` tanpa rencana migrasi.
+- Jangan ubah role hierarchy tanpa keputusan produk.
+- Jangan menaruh business logic baru di `server/main.py`.
+- Backend domain baru masuk `server/api/*`.
+- Schema/migration masuk `server/db/*`.
+- Helper runtime masuk `server/services/*`.
+- Frontend flow besar dipisah ke folder domain.
 
 ## Commit Message
 
-Gunakan format singkat:
+Format:
 
 ```text
 type(scope): summary
@@ -30,46 +38,37 @@ type(scope): summary
 Contoh:
 
 ```text
-feat(access): add admin request queue
-fix(admin): improve dark mode contrast
-docs(readme): document docker demo flow
-chore(docker): publish simrekap ghcr images
+docs(handover): add system analysis and database guide
+fix(admin): improve role queue contrast
+feat(access): add request review queue
 ```
 
-## Validasi Wajib
+## Validasi
 
-Jika frontend berubah:
+Frontend berubah:
 
 ```bash
 npm run build
 ```
 
-Jika backend Python berubah:
+Backend berubah:
 
 ```bash
 python -m py_compile server/main.py
-python -m py_compile server/api/<file-yang-diubah>.py
+python -m py_compile server/api/<file>.py
 ```
 
-Jika flow besar berubah:
+Flow besar:
 
 ```bash
 npm run smoke
 ```
 
-Sebelum commit besar:
+Sebelum commit:
 
 ```bash
 git diff --check
 git status --short
-```
-
-Untuk Docker demo:
-
-```bash
-docker compose build
-docker compose up -d
-curl http://localhost:7761/make-server-32aa5c5c/health
 ```
 
 ## Security Guardrails
@@ -81,38 +80,32 @@ Jangan commit:
 - `database/runtime/`
 - `database/backups/`
 - `database/runtime/dev_credentials.txt`
-- token, password, API key, atau data warga nyata
-- hasil build lokal seperti `dist/`
-- dependency lokal seperti `node_modules/` dan `.venv/`
+- runtime DB;
+- data warga nyata;
+- token/password/API key;
+- `dist/`, `node_modules/`, `.venv/`.
 
-Wajib:
+Sample DB yang boleh masuk Git hanya yang dibuat dari seed bersih dan tidak berisi session/OTP/token.
 
-- RBAC ditegakkan di backend.
-- Query SQL memakai parameterized query.
-- Admin action mencatat audit log jika helper tersedia.
-- Aksi penting membuat notification jika helper tersedia.
-- Error production tidak membocorkan stack trace atau secret.
+## Documentation Rules
+
+Jika behavior berubah, update dokumen terkait:
+
+- `README.md`
+- `docs/API_REFERENCE.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DATABASE_SCHEMA.md`
+- `docs/DEMO_ACCOUNTS.md`
+- `docs/PRODUCTION_GAP_ROADMAP.md`
+
+Dokumen serah-terima berada di `docs/handover/`.
 
 ## Review Checklist
 
-Sebelum merge/push, cek:
-
-- Auth relawan, moderator, dan admin masih bisa berjalan.
-- Register publik tetap membuat role `user`.
-- KSH/moderator hanya aktif setelah approval admin melalui flow yang benar.
-- Scope wilayah moderator tidak bocor lintas kelurahan/kecamatan.
-- API payload masih cocok dengan `src/types/index.ts`.
-- Docker image tidak membawa `.env`, database runtime, credential lokal, `.git`, `node_modules`, atau `.venv`.
-- Dokumentasi yang terkait perubahan ikut diperbarui.
-
-## Dokumentasi
-
-Dokumen utama:
-
-- `README.md` untuk gambaran project.
-- `docs/API_REFERENCE.md` untuk endpoint.
-- `docs/SERVER_DOCKER_RUNBOOK.md` untuk server Docker dan tunnel.
-- `docs/PRODUCTION_GAP_ROADMAP.md` untuk gap menuju produksi publik.
-- `SECURITY.md` untuk kebijakan keamanan.
-
-Jika behavior berubah, update dokumentasi pada commit yang sama.
+- Auth relawan, moderator, admin masih berjalan.
+- Register publik tetap role `user`.
+- KSH/moderator aktif hanya setelah approval admin.
+- Scope wilayah moderator tetap aman.
+- API payload cocok dengan `src/types/index.ts`.
+- Tidak ada secret dalam diff.
+- Dokumentasi sesuai runtime.

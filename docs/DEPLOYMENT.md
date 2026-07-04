@@ -257,6 +257,15 @@ Alternatives:
 
 ## Data and Backup
 
+Runtime database asli tidak di-commit. Untuk kebutuhan review teknis, gunakan:
+
+- `database/sample/simrekap_demo.sqlite` sebagai sample DB sanitized.
+- `database/schema/simrekap_schema.sql` sebagai schema reference.
+- `docs/DATABASE_SCHEMA.md` untuk ERD dan data dictionary.
+- `docs/DATABASE_MIGRATION_NOTES.md` untuk catatan migrasi ke database server.
+
+Untuk environment resmi, buat database runtime baru dan set credential melalui environment variable.
+
 Default SQLite database:
 
 ```text

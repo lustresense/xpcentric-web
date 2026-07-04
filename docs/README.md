@@ -1,31 +1,50 @@
 # SIMREKAP Documentation
 
-This directory contains the public project documentation that should remain in the repository.
+Folder ini berisi dokumentasi publik untuk serah-terima, onboarding teknis, operasi demo, dan pengembangan lanjutan.
 
-## Index
+## Entry Point
 
-- [Architecture](ARCHITECTURE.md)
-- [API Reference](API_REFERENCE.md)
-- [Deployment Guide](DEPLOYMENT.md)
-- [Contributor Setup](SETUP.md)
-- [Demo Accounts](DEMO_ACCOUNTS.md)
-- [Production Readiness](PRODUCTION_READINESS.md)
-- [Production Gap Roadmap](PRODUCTION_GAP_ROADMAP.md)
-- [Maintainer Guide](MAINTAINER_GUIDE.md)
-- [Operations Runbook](OPERATIONS_RUNBOOK.md)
-- [Server Docker Runbook](SERVER_DOCKER_RUNBOOK.md)
-- [Account Recovery Runbook](ACCOUNT_RECOVERY_RUNBOOK.md)
-- [Privacy and Data Governance](PRIVACY_AND_DATA_GOVERNANCE.md)
-- [UX Pilot Audit](UX_PILOT_AUDIT.md)
+- [Root README](../README.md) - guidebook utama project.
+- [Handover Checklist](handover/HANDOVER_CHECKLIST.md) - checklist serah-terima ke tim teknis.
 
-The root [README](../README.md) is the primary overview and can be used as context for academic reporting, demos, or onboarding.
+## Analisis dan Rancangan
 
-For the role-approval demo, see "Demo Access Portal Flow" in [Demo Accounts](DEMO_ACCOUNTS.md) and the access request endpoints in [API Reference](API_REFERENCE.md).
+- [System Analysis](handover/SYSTEM_ANALYSIS.md) - kebutuhan, aktor, boundary, asumsi.
+- [Use Cases](handover/USE_CASES.md) - use case per aktor.
+- [Architecture](ARCHITECTURE.md) - arsitektur frontend, backend, database, dan deployment.
+- [Database Schema](DATABASE_SCHEMA.md) - ERD, data dictionary, lifecycle data.
+- [Database Migration Notes](DATABASE_MIGRATION_NOTES.md) - panduan migrasi SQLite ke database server.
 
-For the VM/server-prodi demo package, compose runtime, and temporary tunnel fallback, see "Demo Docker Runtime" in [Deployment Guide](DEPLOYMENT.md).
+## Implementasi dan API
 
-## Documentation Rules
+- [API Reference](API_REFERENCE.md) - endpoint aktif.
+- [Development Procedure](handover/DEVELOPMENT_PROCEDURE.md) - prosedur pengembangan.
+- [Maintainer Guide](MAINTAINER_GUIDE.md) - aturan maintainer.
+- [Contributor Setup](SETUP.md) - setup developer.
 
-- Keep documentation aligned with the actual runtime in `server/main.py`, `server/api/*`, and `src/app/*`.
-- Do not commit private credentials, local runtime notes, or AI-agent task logs.
-- Put temporary planning notes outside the tracked repository.
+## Demo dan Operasi
+
+- [Demo Accounts](DEMO_ACCOUNTS.md) - akun demo, password policy, skenario demo.
+- [Deployment Guide](DEPLOYMENT.md) - deployment lokal/production-like.
+- [Server Docker Runbook](SERVER_DOCKER_RUNBOOK.md) - Docker, GHCR, tunnel.
+- [Operations Runbook](OPERATIONS_RUNBOOK.md) - health check, backup, troubleshooting.
+- [Account Recovery Runbook](ACCOUNT_RECOVERY_RUNBOOK.md) - prosedur recovery akun.
+
+## Security dan Produksi
+
+- [Security Rationale](handover/SECURITY_RATIONALE.md) - alasan keputusan keamanan.
+- [Security Policy](../SECURITY.md) - policy keamanan repository.
+- [Privacy and Data Governance](PRIVACY_AND_DATA_GOVERNANCE.md) - data governance.
+- [Production Readiness](PRODUCTION_READINESS.md) - kesiapan demo/produksi.
+- [Production Gap Roadmap](PRODUCTION_GAP_ROADMAP.md) - gap produksi yang belum ditutup.
+
+## Audit UX
+
+- [UX Pilot Audit](UX_PILOT_AUDIT.md) - catatan pilot UX.
+
+## Aturan Dokumentasi
+
+- Dokumentasi harus sesuai runtime aktual di `server/`, `src/`, dan `database/`.
+- Jangan tulis credential lokal, token, session, atau data warga nyata.
+- Runtime database tidak masuk Git; gunakan sample DB sanitized di `database/sample/`.
+- Jika behavior berubah, update dokumen terkait pada commit yang sama.

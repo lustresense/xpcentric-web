@@ -12,6 +12,18 @@ Authenticated requests use:
 Authorization: Bearer <session_token>
 ```
 
+Dokumen ini merujuk endpoint aktif yang didispatch dari `server/main.py` ke modul `server/api/*`. Semua endpoint berada di bawah API prefix tetap `/make-server-32aa5c5c`.
+
+## Response and Error Convention
+
+- Response sukses menggunakan JSON object.
+- Error validasi menggunakan status `400`.
+- Error auth menggunakan status `401`.
+- Error role/scope menggunakan status `403`.
+- Error rate limit menggunakan status `429`.
+- Error server production harus generik dan tidak membocorkan stack trace.
+- Mutation penting seperti approval, verification, role change, dan redeem menulis audit log bila helper tersedia.
+
 ## List Pagination and Search
 
 Endpoint list besar mendukung pagination backward-compatible. Response lama tetap punya array utama, lalu ditambah metadata `pagination`.

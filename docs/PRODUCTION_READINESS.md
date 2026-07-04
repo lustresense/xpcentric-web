@@ -1,38 +1,34 @@
 # Production Readiness
 
-SIMREKAP has been hardened for a credible prototype/demo environment, but it should still be reviewed before being used as a public government-facing service.
+SIMREKAP saat ini berada pada status **demo-ready prototype**. Sistem sudah cukup untuk demonstrasi, evaluasi teknis, dan handover pengembangan, tetapi belum boleh diklaim siap produksi publik seluruh warga tanpa menutup gap eksternal dan operasional.
 
 ## Ready for Demonstration
 
-- Frontend builds with `npm run build`.
-- Backend compiles with `python -m py_compile`.
-- Smoke test covers auth, events, reports, certificates, rewards, and notifications.
-- RBAC is enforced server-side for user, moderator, KSH, and admin flows.
-- Admin dashboard separates relawan, ASN/moderator, and admin records.
-- Portal Akses Petugas `/access` supports request-based KSH/moderator approval for demo flows.
-- Docker demo runtime is available through `docker-compose.yml` with separate `web` and `api` services.
-- Temporary tunnel fallback is documented for short internal demos.
-- Demo seed can be disabled for production.
-- Runtime credentials and database files are ignored by Git.
-- Large list endpoints support pagination metadata, with bounded search for selected admin/event/collaboration lists.
-- Maintainer, operations, and privacy/data-governance documentation are available in `docs/`.
-- Production gaps are explicitly documented in `docs/PRODUCTION_GAP_ROADMAP.md`.
+- Frontend build lolos dengan `npm run build`.
+- Backend dapat dikompilasi dengan `python -m py_compile server/main.py`.
+- Smoke test mencakup auth, event, report, certificate, reward, dan notification.
+- RBAC diterapkan server-side.
+- Scope wilayah moderator diterapkan di backend.
+- Portal Akses Petugas `/access` mendukung approval role KSH/moderator.
+- Admin dashboard mendukung review data dan kontrol operasional.
+- Docker Compose demo tersedia dengan service `web` dan `api`.
+- Sample SQLite DB tersedia untuk referensi/demo.
+- Schema SQL dan data dictionary tersedia.
+- Production gap terdokumentasi.
 
 ## Required Before Public Production
 
-- Run behind HTTPS and a reverse proxy.
-- Use strong admin credentials and rotate any demo secrets.
-- Keep `SIMRP_ENABLE_DEMO_SEED=false`.
-- Set strict `SIMRP_ALLOWED_ORIGINS`.
-- Configure backup and restore procedures for SQLite or migrate to managed database storage.
-- Review legal requirements for citizen data handling.
-- Define formal consent, correction, deletion, and retention procedures before collecting real citizen-scale data.
-- Review certificate legality if certificates need official digital signature status.
-- Replace email stub with real SMTP or notification provider if email delivery is required.
-- Add operational monitoring and log rotation.
-- Treat `deploy/nginx/simrekap-api.conf.example` and `deploy/systemd/simrekap-api.service.example` as examples only, not drop-in production config.
-- Treat `/access` as a request portal only. It is not direct moderator activation; active role changes require admin approval.
-- Treat Docker/GHCR/tunnel as demo or pilot packaging. It still needs HTTPS/domain ownership, monitoring, backup operations, and secret governance before public production.
+- HTTPS reverse proxy dengan domain resmi.
+- Credential admin kuat dan rotasi credential demo.
+- `SIMRP_ENABLE_DEMO_SEED=false` untuk data warga nyata.
+- CORS allowlist ketat.
+- Backup/restore rutin dan diuji.
+- Monitoring, log rotation, alerting, dan incident procedure.
+- Provider OTP/identity resmi jika verifikasi nomor/akun diwajibkan.
+- Review legal/privacy/retention untuk data warga.
+- Database managed jika traffic dan data meningkat.
+- Integrasi GoBis resmi jika voucher menjadi benefit nyata.
+- Tanda tangan digital resmi jika sertifikat harus punya kekuatan legal-formal.
 
 ## Final Validation Checklist
 
@@ -44,20 +40,29 @@ npm run smoke
 docker compose build
 docker compose up -d
 curl http://localhost:7761/make-server-32aa5c5c/health
-npm audit --audit-level=high
 git diff --check
 ```
 
 ## Known Prototype Boundaries
 
-- No official GoBis API integration is included.
-- Voucher redemption is simulated in-app.
-- Certificate download generates print-ready HTML, not a cryptographically signed PDF.
-- Backend uses Python stdlib HTTP server for prototype simplicity.
-- SQLite is suitable for local/demo use; public-scale usage should evaluate operational limits.
-- SQLite remains the active database for prototype/KP/demo. PostgreSQL/MySQL is future roadmap for broad pilot/production.
-- OTP is optional/dev-mode for demo and must not block register/login unless a real provider is configured deliberately.
-- `/access` is a portal for access requests, not direct moderator activation.
-- KSH/moderator roles become active only after admin approval.
-- Docker and temporary tunnels are suitable for demo delivery, not final city-wide hosting.
-- OTP, official GoBis integration, legal digital signature, and final UU PDP compliance are external-dependency gaps, not completed implementation.
+- Forgot password self-service belum tersedia; recovery diarahkan ke admin verification.
+- OTP masih provider-ready/dev-mode.
+- Voucher GoBis masih simulasi.
+- Sertifikat belum memakai tanda tangan digital resmi.
+- SQLite aktif untuk prototype/KP/demo.
+- Docker/GHCR/tunnel adalah paket demo, bukan final hosting publik.
+- Sample DB adalah data demo sanitized, bukan database production.
+
+## Handover Status
+
+Untuk serah-terima, status yang tepat:
+
+```text
+Demo-ready prototype with documented handover package and production gap roadmap.
+```
+
+Kalimat yang harus dihindari:
+
+```text
+Production-ready untuk seluruh warga tanpa gap.
+```

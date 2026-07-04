@@ -1,26 +1,25 @@
 # Security Policy
 
-SIMREKAP adalah prototype Kerja Praktik, tetapi repository harus diperlakukan seperti codebase produksi karena menyentuh auth, role, laporan, sertifikat, reward, dan data pengguna.
+SIMREKAP adalah prototype yang menyentuh auth, role, laporan, sertifikat, reward, dan data pengguna. Repository ini diperlakukan seperti codebase production-like agar aman untuk demo dan mudah dilanjutkan tim teknis.
 
 ## Supported Version
 
-Security fixes ditargetkan ke branch aktif:
+Security fixes ditargetkan ke:
 
 ```text
-lustresense/xpcentric-web:main
+Repository: lustresense/xpcentric-web
+Branch: main
 ```
-
-Branch lama atau mirror lain tidak dianggap sumber deployment utama kecuali disebutkan eksplisit oleh maintainer.
 
 ## Reporting Security Issues
 
-Jangan membuka detail kerentanan lewat public issue, screenshot publik, atau commit message. Laporkan langsung ke maintainer proyek dengan informasi berikut:
+Jangan membuka detail security issue di public issue, screenshot publik, atau commit message. Laporkan langsung ke maintainer dengan:
 
-- endpoint atau screen yang terdampak;
+- endpoint/screen terdampak;
 - langkah reproduksi;
-- dampak terhadap auth, session, RBAC, database write, sertifikat, reward, atau data pengguna;
-- expected behavior dan actual behavior;
-- apakah butuh rotasi credential atau reset session.
+- dampak terhadap auth, session, RBAC, database write, certificate, reward, atau data pengguna;
+- expected vs actual behavior;
+- kebutuhan rotasi credential/session jika ada.
 
 ## Secret Handling
 
@@ -31,32 +30,45 @@ Jangan commit:
 - `database/runtime/`
 - `database/backups/`
 - `database/runtime/dev_credentials.txt`
-- database SQLite runtime
-- API key, token, password, cookie, atau data warga nyata
+- runtime SQLite database;
+- token, password, API key, cookie, atau data warga nyata.
 
-Gunakan `.env.example` untuk placeholder. Credential demo development boleh dibuat otomatis oleh backend, tetapi file hasilnya tetap lokal dan harus di-ignore.
+Yang boleh di-commit:
+
+- `.env.example` berisi placeholder.
+- `database/sample/simrekap_demo.sqlite` karena dibuat dari seed bersih dan tidak berisi session/OTP/token.
+- `database/schema/simrekap_schema.sql` sebagai referensi schema.
 
 ## Security Baseline
 
 Implementasi saat ini mencakup:
 
-- password hashing PBKDF2-HMAC-SHA256;
-- bearer session token yang disimpan server-side;
+- PBKDF2-HMAC-SHA256 password hashing;
+- bearer session token server-side;
 - server-side RBAC;
-- scope wilayah untuk aksi moderator;
+- moderator scope checks by wilayah;
 - parameterized SQL;
-- batas ukuran request body;
-- rate limiting untuk auth dan mutation;
+- request body limit;
+- auth dan mutation rate limiting;
 - CORS allowlist;
 - security headers;
 - audit log untuk aksi penting;
 - notification untuk perubahan status penting;
-- download sertifikat memakai Authorization header, bukan token di URL;
-- Portal Akses Petugas dengan approval admin sebelum role KSH/moderator aktif.
+- certificate download memakai Authorization header;
+- Portal Akses Petugas dengan admin approval sebelum role KSH/moderator aktif.
+
+## Keputusan Keamanan Prototype
+
+- Register publik hanya membuat relawan.
+- KSH/moderator harus melalui approval admin.
+- Forgot password self-service belum dibuat karena belum ada identity provider, SMTP/OTP production, atau helpdesk verification resmi.
+- Account recovery diarahkan ke prosedur admin verification.
+- OTP mode `dev` hanya untuk demo, bukan production.
+- Voucher reward masih simulasi sampai ada integrasi resmi.
+
+Rationale lengkap ada di `docs/handover/SECURITY_RATIONALE.md`.
 
 ## Production-Like Deployment Checklist
-
-Sebelum demo publik atau deployment yang bisa diakses jaringan luar:
 
 ```bash
 npm run build
@@ -69,41 +81,39 @@ curl http://localhost:7761/make-server-32aa5c5c/health
 
 Pastikan:
 
-- `SIMRP_ENV=production` untuk deployment non-lokal.
-- Admin password kuat dan tidak memakai credential demo.
-- `SIMRP_ALLOWED_ORIGINS` diisi domain yang benar.
-- Demo seed hanya aktif jika memang untuk demo.
-- Database runtime berada di volume persisten.
-- Backup database diuji restore-nya.
-- Cloudflare Quick Tunnel hanya dipakai sebagai fallback demo, bukan arsitektur produksi final.
+- `SIMRP_ENV=production` untuk deployment non-demo.
+- Admin password kuat.
+- Demo seed dimatikan untuk data warga nyata.
+- CORS allowlist diset.
+- Runtime database berada di volume persisten.
+- Backup/restore diuji.
+- Tunnel sementara tidak dianggap hosting produksi.
 
-## Known Prototype Boundaries
+## Prototype Boundaries
 
-SIMREKAP belum boleh diklaim siap produksi publik penuh sebelum gap berikut ditutup:
+Belum production final sampai:
 
-- OTP/SMS atau identity verification resmi.
-- Monitoring, log retention, alerting, dan incident response.
-- Review legal/privacy untuk data warga.
-- Database server managed jika volume pengguna besar.
-- Integrasi resmi GoBis jika voucher menjadi transaksi nyata.
-- Sertifikat dengan tanda tangan digital/legal formal jika diperlukan.
-
-Detail roadmap ada di `docs/PRODUCTION_GAP_ROADMAP.md`.
+- OTP/identity provider resmi tersedia;
+- monitoring dan incident response tersedia;
+- review legal/privacy selesai;
+- database strategy untuk skala publik ditetapkan;
+- GoBis API resmi tersedia jika reward menjadi nyata;
+- tanda tangan digital resmi tersedia jika sertifikat butuh status legal formal.
 
 ## Incident Response
 
 Jika credential bocor:
 
-1. Hapus credential dari repository atau media publik.
-2. Rotasi password atau token terkait.
+1. Hapus dari media publik.
+2. Rotasi credential.
 3. Invalidate session jika perlu.
-4. Cek audit log untuk aktivitas tidak wajar.
-5. Update dokumentasi mitigasi jika penyebabnya berasal dari workflow.
+4. Cek audit log.
+5. Update SOP agar kejadian tidak terulang.
 
-Jika database runtime bocor:
+Jika runtime database bocor:
 
-1. Anggap semua data di database tersebut kompromi.
-2. Hentikan container terkait.
+1. Anggap semua data di database kompromi.
+2. Hentikan service terkait.
 3. Rotasi credential admin/demo.
-4. Restore dari backup bersih jika tersedia.
-5. Jangan commit database runtime ke Git.
+4. Restore dari backup bersih bila tersedia.
+5. Jangan commit runtime DB ke Git.

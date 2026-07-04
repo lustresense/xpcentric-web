@@ -63,6 +63,15 @@ SQLite tetap menjadi active database untuk prototype lokal, buku KP, sidang KP, 
 
 Untuk skala kota atau pilot luas, perlu evaluasi database server/managed database. Jangan mengubah DB adapter, query layer, runtime DB path, atau schema runtime hanya untuk mengejar klaim production sebelum ada kebutuhan pilot luas yang jelas.
 
+Repository menyediakan artefak handover agar tim teknis bisa memahami dan memigrasikan database tanpa memulai dari nol:
+
+- `docs/DATABASE_SCHEMA.md`
+- `docs/DATABASE_MIGRATION_NOTES.md`
+- `database/schema/simrekap_schema.sql`
+- `database/sample/simrekap_demo.sqlite`
+
+Sample DB tersebut dibuat dari seed bersih dan bukan salinan runtime database lokal.
+
 ### Requirement Produksi
 
 - Pilih target DB: PostgreSQL direkomendasikan untuk relasi dan audit.
