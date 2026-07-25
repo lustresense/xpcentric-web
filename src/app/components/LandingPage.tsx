@@ -3,22 +3,18 @@ import { apiPublicGet } from "@/lib/api";
 import { CenteredLogoNav } from "@/app/components/landing/CenteredLogoNav";
 import { HeroSection } from "@/app/components/landing/HeroSection";
 import { PillarsSection } from "@/app/components/landing/PillarsSection";
-import { LeaderboardSection } from "@/app/components/landing/LeaderboardSection";
 import { AboutSection } from "@/app/components/landing/AboutSection";
-import { HowItWorksSection } from "@/app/components/landing/HowItWorksSection";
-import { CollaborationSection } from "@/app/components/landing/CollaborationSection";
 import { FinalCTASection } from "@/app/components/landing/FinalCTASection";
 import { FloatingEntryCTA } from "@/app/components/landing/FloatingEntryCTA";
 import { FeatureHighlightsSection } from "@/app/components/landing/FeatureHighlightsSection";
 import { LandingSplash } from "@/app/components/landing/LandingSplash";
-import type { LandingNavigatePage, LeaderboardEntry } from "@/app/components/landing/types";
+import type { LandingNavigatePage } from "@/app/components/landing/types";
 
 interface LandingPageProps {
   onNavigate: (page: LandingNavigatePage) => void;
 }
 
 export function LandingPage({ onNavigate }: LandingPageProps) {
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [geoStats, setGeoStats] = useState({ kelurahan: 154, kodepos: 128 });
   const [showSplash, setShowSplash] = useState<boolean>(() => {
     if (typeof window === "undefined") {
@@ -32,14 +28,6 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
   const [isLeaving, setIsLeaving] = useState(false);
 
   useEffect(() => {
-    const fetchLeaderboard = async () => {
-      try {
-        const data = await apiPublicGet('/landing/leaderboard');
-        setLeaderboard(Array.isArray(data.leaderboard) ? data.leaderboard : []);
-      } catch {
-        // Landing leaderboard is non-critical
-      }
-    };
     const fetchGeoStats = async () => {
       try {
         const data = await apiPublicGet<any>('/geo/stats');
@@ -51,7 +39,6 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
         // Non-critical for landing
       }
     };
-    fetchLeaderboard();
     fetchGeoStats();
   }, []);
 
@@ -94,9 +81,6 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
         <PillarsSection />
         <AboutSection />
         <FeatureHighlightsSection />
-        <HowItWorksSection />
-        <LeaderboardSection entries={leaderboard} onOpenFull={() => navigateSmooth("login")} />
-        <CollaborationSection onCollaborate={() => navigateSmooth("collaboration")} />
         <FinalCTASection />
       </main>
 

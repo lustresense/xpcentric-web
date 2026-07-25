@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, CheckCircle2, Handshake, Home, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Building2, CheckCircle2, Handshake, Home, Megaphone, Sparkles } from "lucide-react";
 import { apiPublicGet, apiPublicPost } from "@/lib/api";
 import { Button } from "@/app/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
@@ -228,6 +228,42 @@ export function CollaborationPage({ onNavigate }: CollaborationPageProps) {
                 <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600">
                   <Handshake className="h-3.5 w-3.5 text-[#155738]" />
                   Bergabung dengan ratusan mitra kolaborasi
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* ── Info Mitra Section ── */}
+          <section className="lg:col-span-5 lg:row-start-2">
+            <div className="rounded-3xl border border-[#d8e2db] bg-white p-6 shadow-[0_8px_24px_rgba(10,40,25,0.07)]">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#0f5f3f]/70">Jadi Mitra</p>
+              <h2 className="mt-2 text-2xl font-bold tracking-tight text-[#14201a]">Kolaborasi Mitra Kampung</h2>
+              <p className="mt-3 text-sm leading-relaxed text-[#4f5d56]">
+                Perusahaan, komunitas, dan institusi dapat berkolaborasi dalam penyelenggaraan kegiatan kampung melalui
+                mekanisme resmi pemerintah. Kolaborasi dapat berupa dukungan kegiatan, fasilitas, atau bentuk kerja sama
+                lain yang memperkuat program Kampung Pancasila.
+              </p>
+              <div className="mt-5 grid gap-3">
+                <div className="flex items-start gap-3 rounded-2xl border border-[#d8e2db] bg-[#f7fbf8] p-4">
+                  <Building2 className="mt-0.5 h-5 w-5 shrink-0 text-[#0f5f3f]" />
+                  <div>
+                    <p className="text-sm font-semibold text-[#1b2a23]">Perusahaan</p>
+                    <p className="mt-0.5 text-xs text-[#5c6a63]">Dukungan logistik, fasilitas, atau program sosial.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 rounded-2xl border border-[#d8e2db] bg-[#f7fbf8] p-4">
+                  <Megaphone className="mt-0.5 h-5 w-5 shrink-0 text-[#0f5f3f]" />
+                  <div>
+                    <p className="text-sm font-semibold text-[#1b2a23]">Media &amp; Komunitas</p>
+                    <p className="mt-0.5 text-xs text-[#5c6a63]">Dukungan publikasi, kampanye, dan penguatan partisipasi warga.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 rounded-2xl border border-[#d8e2db] bg-[#f7fbf8] p-4">
+                  <Handshake className="mt-0.5 h-5 w-5 shrink-0 text-[#0f5f3f]" />
+                  <div>
+                    <p className="text-sm font-semibold text-[#1b2a23]">Institusi</p>
+                    <p className="mt-0.5 text-xs text-[#5c6a63]">Kolaborasi lintas sektor dengan jalur resmi pemerintah.</p>
+                  </div>
                 </div>
               </div>
             </div>

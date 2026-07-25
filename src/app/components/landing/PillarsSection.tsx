@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { HandCoins, HeartHandshake, Leaf, Shield } from "lucide-react";
+import { HandCoins, HeartHandshake, Leaf, Shield, X } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 
 const PILLARS = [
   {
@@ -41,6 +42,7 @@ export function PillarsSection() {
   const [progress, setProgress] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const [activePillar, setActivePillar] = useState(0);
+  const [popupIndex, setPopupIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth < 768);
@@ -55,9 +57,7 @@ export function PillarsSection() {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
         const section = sectionRef.current;
-        if (!section) {
-          return;
-        }
+        if (!section) return;
         const rect = section.getBoundingClientRect();
         const vh = window.innerHeight;
         const travel = rect.height + vh;
@@ -74,6 +74,12 @@ export function PillarsSection() {
       cancelAnimationFrame(raf);
     };
   }, []);
+
+  // Lock body scroll when popup open
+  useEffect(() => {
+    document.body.style.overflow = popupIndex !== null ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [popupIndex]);
 
   const spread = useMemo(() => {
     const value = 1 - Math.abs(progress * 2 - 1) * 1.35;
@@ -102,9 +108,10 @@ export function PillarsSection() {
   ];
 
   const opened = isMobile ? openedMobile : openedDesktop;
+  const activePillarData = popupIndex !== null ? PILLARS[popupIndex] : null;
 
   return (
-    <section id="pilar" ref={sectionRef} className="mx-auto max-w-5xl px-4 py-20 md:py-28">
+    <section id="pilar" ref={sectionRef} className="mx-auto max-w-5xl px-4 py-10 md:py-14">
       <div className="max-w-4xl">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#0f5f3f]/70">Program Kampung Pancasila</p>
         <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[#132018] md:text-4xl">Tentang Program Kampung Pancasila</h2>
@@ -118,9 +125,11 @@ export function PillarsSection() {
         </p>
       </div>
 
-      <div className="mt-10 grid gap-6 md:grid-cols-[1.35fr,0.65fr] md:items-start">
+      {/* Kartu Pilar */}
+      <div className="mt-10">
         <div className="relative h-[320px] rounded-3xl border border-[#d7e2da] bg-[#f4faf6] md:h-[260px]">
           <div className="absolute inset-0 rounded-3xl bg-[radial-gradient(circle_at_center,rgba(255,193,7,0.16),transparent_60%)]" />
+          <p className="absolute bottom-4 left-0 right-0 text-center text-xs text-[#7a8f83]">Klik kartu untuk lihat penjelasan</p>
           {PILLARS.map((pillar, index) => {
             const from = collapsed[index];
             const to = opened[index];
@@ -136,7 +145,7 @@ export function PillarsSection() {
                 type="button"
                 onMouseEnter={() => setActivePillar(index)}
                 onFocus={() => setActivePillar(index)}
-                onClick={() => setActivePillar(index)}
+                onClick={() => setPopupIndex(index)}
                 className="absolute left-1/2 top-1/2 w-[148px] rounded-2xl border bg-white p-4 text-left shadow-[0_10px_24px_rgba(15,45,31,0.12)] transition-[transform,border-color,box-shadow] duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] md:w-[176px]"
                 style={{
                   transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) rotate(${rotation}deg) scale(${scale})`,
@@ -156,22 +165,59 @@ export function PillarsSection() {
             );
           })}
         </div>
-
-        <div className="rounded-2xl border border-[#d8e2db] bg-white p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#0f5f3f]/70">Pilar Aktif</p>
-          <h3 className="mt-2 text-lg font-semibold text-[#17251d]">{PILLARS[activePillar].title}</h3>
-          <p className="mt-2 text-sm leading-relaxed text-[#53625a]">{PILLARS[activePillar].description}</p>
-        </div>
       </div>
 
-      <div className="mt-8 grid gap-3 md:grid-cols-2">
-        {PILLARS.map((pillar, index) => (
-          <article key={pillar.title} className="rounded-2xl border border-[#d8e2db] bg-white p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.13em] text-[#0f5f3f]/70">{index + 1}. {pillar.title}</p>
-            <p className="mt-2 text-sm leading-relaxed text-[#56655e]">{pillar.description}</p>
-          </article>
-        ))}
-      </div>
+      {/* Popup Modal */}
+      <AnimatePresence>
+        {popupIndex !== null && activePillarData && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              key="backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.22 }}
+              className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-[6px]"
+              onClick={() => setPopupIndex(null)}
+            />
+
+            {/* Modal */}
+            <motion.div
+              key="modal"
+              initial={{ opacity: 0, scale: 0.88, y: 32 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 20 }}
+              transition={{ type: "spring", stiffness: 380, damping: 28, mass: 0.9 }}
+              className="fixed left-1/2 top-1/2 z-[61] w-[min(90vw,420px)] -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-[#d8e2db] bg-white p-7 shadow-[0_32px_72px_rgba(10,40,25,0.28)]"
+            >
+              {/* Tombol tutup */}
+              <button
+                type="button"
+                onClick={() => setPopupIndex(null)}
+                className="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full border border-[#d8e2db] text-[#4d5d55] transition hover:bg-[#f0f6f2]"
+                aria-label="Tutup"
+              >
+                <X className="h-4 w-4" />
+              </button>
+
+              {/* Ikon */}
+              <span className="inline-flex rounded-xl bg-[#e8f3ed] p-3 text-[#0f5f3f]">
+                <activePillarData.icon className="h-6 w-6" />
+              </span>
+
+              {/* Label */}
+              <p className="mt-4 text-xs font-semibold uppercase tracking-[0.15em] text-[#0f5f3f]/70">Pilar Aktif</p>
+
+              {/* Judul */}
+              <h3 className="mt-1 text-xl font-bold text-[#17251d]">{activePillarData.title}</h3>
+
+              {/* Deskripsi */}
+              <p className="mt-3 text-sm leading-relaxed text-[#53625a]">{activePillarData.description}</p>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

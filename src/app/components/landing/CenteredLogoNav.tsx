@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import type { LandingNavigatePage } from "@/app/components/landing/types";
 
 interface CenteredLogoNavProps {
@@ -200,26 +200,7 @@ export function CenteredLogoNav({ onNavigate, onHomeClick }: CenteredLogoNavProp
                     </motion.button>
                   </motion.nav>
 
-                  <motion.div variants={listVariants} className="flex flex-wrap items-center gap-2">
-                    <motion.button
-                      variants={itemVariants}
-                      type="button"
-                      onClick={() => go("login")}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#FBBF24] px-4 py-2 text-sm font-semibold text-[#182117] transition hover:brightness-105"
-                    >
-                      Jadi Relawan
-                      <ArrowRight className="h-4 w-4" />
-                    </motion.button>
-                    <motion.button
-                      variants={itemVariants}
-                      type="button"
-                      onClick={() => go("collaboration")}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#d7e1db] bg-white px-4 py-2 text-sm font-medium text-[#1b2f25] transition hover:border-[#8fb7a7]"
-                    >
-                      Jadi Mitra
-                      <ArrowRight className="h-4 w-4" />
-                    </motion.button>
-                  </motion.div>
+
                 </motion.div>
               </motion.div>
             )}
@@ -265,26 +246,7 @@ export function CenteredLogoNav({ onNavigate, onHomeClick }: CenteredLogoNavProp
                   >
                     FAQ
                   </motion.button>
-                  <div className="grid gap-2 border-t border-[#d7e1db] p-2">
-                    <motion.button
-                      variants={itemVariants}
-                      type="button"
-                      onClick={() => go("login")}
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#FBBF24] px-4 py-3 text-sm font-semibold text-[#182117] transition hover:brightness-105"
-                    >
-                      Jadi Relawan
-                      <ArrowRight className="h-4 w-4" />
-                    </motion.button>
-                    <motion.button
-                      variants={itemVariants}
-                      type="button"
-                      onClick={() => go("collaboration")}
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#d7e1db] bg-white px-4 py-3 text-sm font-semibold text-[#1b2f25] transition hover:bg-[#eff5f1]"
-                    >
-                      Jadi Mitra
-                      <ArrowRight className="h-4 w-4" />
-                    </motion.button>
-                  </div>
+
                 </motion.div>
               </motion.div>
             )}
