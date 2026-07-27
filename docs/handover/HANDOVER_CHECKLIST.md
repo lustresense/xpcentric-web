@@ -1,67 +1,64 @@
-# Handover Checklist
+# Handover Checklist (SPBE Diskominfo)
 
-Checklist ini dipakai saat repository diserahkan ke tim teknis berikutnya.
+Checklist ini digunakan saat repository SIMREKAP diserah-terimakan secara resmi ke tim teknis Diskominfo Kota Surabaya.
 
-## Repository
+## 1. Kode Sumber & Repository
 
 - [ ] Repository aktif adalah `lustresense/xpcentric-web`.
 - [ ] Branch aktif adalah `main`.
-- [ ] `README.md` sudah dibaca.
-- [ ] `docs/README.md` sudah dibaca sebagai index dokumentasi.
-- [ ] `LICENSE.md` sudah dipahami.
-- [ ] Tidak ada `.env`, credential lokal, runtime DB, atau backup DB yang ikut commit.
+- [ ] `README.md` utama telah dibaca dan dipahami.
+- [ ] `docs/README.md` telah dibaca sebagai indeks dokumentasi lengkap.
+- [ ] File `.env.example` tersedia dengan penjelasan konfigurasi lengkap.
+- [ ] Kredensial lokal, `.env`, runtime DB (`database/runtime/`), dan file log **TIDAK** ikut ter-commit ke Git.
+- [ ] Seluruh sisa file Docker internal telah dibersihkan.
 
-## Setup Lokal
+## 2. Dokumentasi SPBE & Diátaxis
 
-- [ ] Node.js dan Python tersedia.
-- [ ] `npm install` berhasil.
-- [ ] `npm run dev` berhasil.
-- [ ] Frontend terbuka di `http://localhost:5173`.
-- [ ] Backend health check berhasil.
-- [ ] Credential development diketahui dari env atau `database/runtime/dev_credentials.txt`.
+- [ ] `docs/DEPLOYMENT_MANUAL_DISKOMINFO.md` (Panduan Deployment VPS Ubuntu + Systemd + Nginx).
+- [ ] `docs/USER_MANUAL_RELAWAN.md` (Panduan Pengguna Warga/Relawan).
+- [ ] `docs/USER_MANUAL_KSH_LURAH.md` (Panduan Petugas KSH, Lurah, & Camat).
+- [ ] `docs/ADMIN_MANUAL.md` (Panduan Administrator System /admin).
+- [ ] `docs/MAINTENANCE_SOP.md` (SOP Pemeliharaan & Penanganan Insiden).
+- [ ] `docs/CREDENTIAL_HANDOVER_TEMPLATE.md` (Form Penyerahan Kredensial Akses).
+- [ ] `docs/handover/BERITA_ACARA_SERAH_TERIMA_TEMPLATE.md` (Template BAST Resmi SPBE).
+- [ ] `docs/ADR/001-why-threading-http-server-and-sqlite.md` (Architecture Decision Record).
+- [ ] `docs/ERD_Mermaid.md` (Diagram Visual ERD & Data Dictionary).
+- [ ] `docs/KNOWN_ISSUES_AND_TECH_DEBT.md` (Known Issues, Tech Debt & Risk Register).
+- [ ] `docs/AUDIT_REPORT_OPUS.md` (Laporan Audit 360° 8-Pilar).
 
-## Database
+## 3. Setup & Pengujian Lokal
 
-- [ ] `docs/DATABASE_SCHEMA.md` dibaca.
-- [ ] `database/schema/simrekap_schema.sql` tersedia.
-- [ ] `database/sample/simrekap_demo.sqlite` bisa dibuka.
-- [ ] Tim memahami bahwa runtime DB asli tidak di-commit.
-- [ ] Tim mengganti credential sebelum deployment resmi.
+- [ ] Node.js (v20 LTS) dan Python (v3.11+) terpasang.
+- [ ] `npm install` berjalan tanpa error.
+- [ ] `npm run dev` berhasil menjalankan backend Python (`:8000`) dan Vite frontend (`:5173`).
+- [ ] `python -m py_compile server/main.py` berhasil tanpa syntax error.
+- [ ] `npm run build` berhasil menghasilkan bundle static di `dist/`.
+- [ ] Backend smoke test (`python scripts/smoketest.py`) menunjukkan **PASS 59/59**.
 
-## Demo Flow
+## 4. Basis Data & Skema
 
-- [ ] Login relawan demo.
-- [ ] Register relawan baru.
-- [ ] Ajukan akses KSH/moderator melalui `/access`.
-- [ ] Admin approve/reject access request.
-- [ ] Buat dan publish event.
-- [ ] Join event dan attendance.
-- [ ] Submit report dan verify.
-- [ ] Preview/download certificate.
-- [ ] Redeem voucher demo.
+- [ ] `docs/DATABASE_SCHEMA.md` dan `docs/ERD_Mermaid.md` telah ditinjau.
+- [ ] `database/schema/simrekap_schema.sql` tersedia sebagai acuan skema SQL.
+- [ ] `database/sample/simrekap_demo.sqlite` dapat dibuka sebagai sampel database bersih.
+- [ ] Tim memahami bahwa database runtime asli tidak di-commit dan dibuat baru saat deployment.
 
-## Deployment
+## 5. Alur Alih Keterampilan (Demo Flow Validation)
 
-- [ ] Docker Desktop/Engine tersedia.
-- [ ] `docker compose pull` berhasil.
-- [ ] `docker compose up -d` berhasil.
-- [ ] Port `7761` aktif.
-- [ ] Cloudflare Quick Tunnel aktif jika perlu akses HP.
-- [ ] Volume SQLite dipahami sebagai data persisten.
+- [ ] Login relawan demo dan registrasi relawan baru.
+- [ ] Pengajuan akses petugas KSH/moderator via `/access`.
+- [ ] Approval/rejection pengajuan akses di Portal Admin (`/admin`).
+- [ ] Pembuatan draft event, persetujuan (approve), dan publikasi (publish).
+- [ ] Pendaftaran event (join) dan pencatatan presensi (attendance).
+- [ ] Penyelesaian event (complete) dan pengiriman laporan (submit report).
+- [ ] Verifikasi laporan oleh Lurah/Camat (XP, sertifikat, dan notifikasi otomatis).
+- [ ] Pratinjau dan unduh sertifikat digital apresiasi.
+- [ ] Penukaran voucher apresiasi demo.
 
-## Security
+## 6. Keamanan & Kepatuhan Production
 
-- [ ] `SECURITY.md` dibaca.
-- [ ] `docs/handover/SECURITY_RATIONALE.md` dibaca.
-- [ ] Admin password diganti.
-- [ ] Demo seed dimatikan untuk production warga nyata.
-- [ ] OTP dev tidak dipakai untuk production.
-- [ ] Backup database disiapkan.
-
-## Production Gap
-
-- [ ] `docs/PRODUCTION_GAP_ROADMAP.md` dibaca.
-- [ ] Keputusan migrasi database ditentukan.
-- [ ] Provider OTP/identity ditentukan.
-- [ ] Integrasi GoBis resmi ditentukan jika reward akan nyata.
-- [ ] Legal/privacy review dilakukan.
+- [ ] `SECURITY.md` dan `docs/handover/SECURITY_RATIONALE.md` telah ditinjau.
+- [ ] Password admin default telah diganti dengan password unik & kuat di `.env`.
+- [ ] Seed data demo (`SIMRP_ENABLE_DEMO_SEED`) dimatikan untuk penggunaan data warga nyata.
+- [ ] Provider OTP `dev` dimatikan (`SIMRP_OTP_PROVIDER=disabled`) sebelum provider resmi terpasang.
+- [ ] Script backup otomatis (`scripts/backup_database.py`) atau cron backup telah dikonfigurasi.
+- [ ] Review privasi data & UU PDP (`docs/PRIVACY_AND_DATA_GOVERNANCE.md`) telah dibaca.

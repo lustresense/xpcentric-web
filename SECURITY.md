@@ -74,9 +74,7 @@ Rationale lengkap ada di `docs/handover/SECURITY_RATIONALE.md`.
 npm run build
 python -m py_compile server/main.py
 npm run smoke
-docker compose build
-docker compose up -d
-curl http://localhost:7761/make-server-32aa5c5c/health
+curl http://127.0.0.1:8000/make-server-32aa5c5c/health
 ```
 
 Pastikan:

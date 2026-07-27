@@ -21,7 +21,6 @@ Catatan kompatibilitas: beberapa environment variable dan API prefix masih memak
 - [Alur Bisnis](#alur-bisnis)
 - [Arsitektur Teknis](#arsitektur-teknis)
 - [Quick Start Lokal](#quick-start-lokal)
-- [Docker Demo Runtime](#docker-demo-runtime)
 - [Akun Demo dan Database Sample](#akun-demo-dan-database-sample)
 - [Environment Variable Utama](#environment-variable-utama)
 - [Struktur Repository](#struktur-repository)
@@ -70,7 +69,6 @@ Register publik selalu menghasilkan role awal `user`. KSH dan moderator tidak bi
 | Collaboration | Public partner request dan approval/reject oleh petugas |
 | Notification | Unread count, daftar notifikasi, mark read |
 | Audit | Audit log untuk aksi penting admin/moderator |
-| Docker | Runtime demo `web` + `api` memakai SQLite volume |
 
 ## Alur Bisnis
 
@@ -103,17 +101,6 @@ flowchart TD
     I --> J[Sertifikat dibuat]
     J --> K[Notifikasi dan audit log]
     H -->|Rejected| L[Alasan penolakan dan notifikasi]
-```
-
-### Docker Demo
-
-```mermaid
-flowchart LR
-    U[Browser/HP] --> W[Nginx web container :7761]
-    W -->|Static SPA| F[React dist]
-    W -->|/make-server-32aa5c5c| A[Python API :8000]
-    A --> D[(SQLite volume /data/simrekap)]
-    T[Cloudflare Quick Tunnel] --> W
 ```
 
 ## Arsitektur Teknis
@@ -186,36 +173,6 @@ npm run dev:web   # frontend saja
 npm run build     # build frontend
 npm run smoke     # smoke test backend
 ```
-
-## Docker Demo Runtime
-
-Repository menyediakan compose dua service:
-
-- `api`: Python backend.
-- `web`: Nginx yang serve frontend `dist` dan proxy API prefix ke service `api`.
-
-Jalankan:
-
-```bash
-docker compose pull
-docker compose up -d
-curl http://localhost:7761/make-server-32aa5c5c/health
-```
-
-Image GHCR:
-
-```text
-ghcr.io/lustresense/simrekap:api-demo
-ghcr.io/lustresense/simrekap:web-demo
-```
-
-Port demo:
-
-```text
-http://localhost:7761
-```
-
-Runbook lengkap ada di [docs/SERVER_DOCKER_RUNBOOK.md](docs/SERVER_DOCKER_RUNBOOK.md).
 
 ## Akun Demo dan Database Sample
 

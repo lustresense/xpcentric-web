@@ -136,23 +136,3 @@ database/schema/simrekap_schema.sql
 ```
 
 Runtime DB di-ignore karena dapat berisi session dan credential state. Sample DB aman dibuat dari seed bersih.
-
-## Docker Architecture
-
-```mermaid
-flowchart TB
-    subgraph Compose[docker compose]
-        Web[Nginx web service]
-        Api[Python api service]
-        Volume[(simrekap-data volume)]
-    end
-
-    Web -->|proxy /make-server-32aa5c5c| Api
-    Api --> Volume
-```
-
-Port host default:
-
-```text
-7761 -> web:80
-```
