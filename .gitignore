@@ -10,14 +10,11 @@ node_modules/
 # Build output
 dist/
 
-# Database - runtime and backup files excluded
-database/runtime/
-database/*.db
+# Exclude only SQLite temporary transaction logs
 database/*.db-journal
 database/*.db-wal
 database/*.db-shm
-database/backups/*.db
-database/backups/*.sql
+
 
 # Python
 server/__pycache__/
