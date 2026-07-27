@@ -55,5 +55,4 @@ Atau gunakan env:
 ```bash
 SIMRP_DB_PATH=database/sample/simrekap_demo.sqlite npm run api
 ```
-
-Untuk Docker, copy ke volume atau biarkan aplikasi membuat DB dari seed menggunakan env.
+Untuk server Linux VPS Diskominfo, copy file ke direktori runtime atau biarkan aplikasi membuat DB baru dari seed menggunakan variabel environment.
