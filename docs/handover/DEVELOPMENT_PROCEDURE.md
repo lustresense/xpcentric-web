@@ -86,7 +86,7 @@ Checklist demo:
 - certificate;
 - reward;
 - admin dashboard;
-- Docker/tunnel jika demo lintas perangkat.
+- pengujian di server Linux VPS atau lokal.
 
 Feedback dicatat sebagai:
 

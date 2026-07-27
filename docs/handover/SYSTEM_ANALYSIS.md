@@ -47,7 +47,7 @@ Termasuk dalam prototype:
 - OTP mode development/provider-ready.
 - Role-based access control server-side.
 - Event, report, XP, certificate, reward, notification, audit log.
-- Docker demo runtime.
+- Manual deployment Linux VPS (Systemd + Nginx).
 
 Tidak termasuk produksi final:
 
@@ -73,5 +73,4 @@ Tidak termasuk produksi final:
 - Admin bisa approve/reject pengajuan akses.
 - Event bisa dibuat, di-approve, dipublish, diikuti, dan diselesaikan.
 - Laporan bisa diverifikasi dan menghasilkan XP/sertifikat.
-- Dashboard admin bisa menampilkan data pengguna, event, laporan, kolaborasi, dan kontrol admin.
-- Aplikasi dapat dijalankan lokal atau via Docker Compose.
+- Aplikasi dapat dijalankan secara lokal maupun di server Linux VPS dengan Node.js dan Python.
